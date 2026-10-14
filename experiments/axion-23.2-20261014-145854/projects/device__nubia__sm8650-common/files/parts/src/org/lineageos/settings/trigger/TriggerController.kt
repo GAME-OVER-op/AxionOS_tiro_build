@@ -1,0 +1,49 @@
+/*
+ * SPDX-FileCopyrightText: 2025 The LineageOS Project
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+package org.lineageos.settings.trigger
+
+import android.content.Context
+import org.lineageos.settings.service.HardwareControlService
+import org.lineageos.settings.utils.getInt
+import org.lineageos.settings.utils.putInt
+
+object TriggerController {
+
+    const val KEY_TRIGGER_ENABLE = "trigger_enable"
+
+    const val TRIGGER_BUTTON1_ENABLE_NODE = "/proc/nubia_key/sar0/mode_operation"
+    const val TRIGGER_BUTTON2_ENABLE_NODE = "/proc/nubia_key/sar1/mode_operation"
+
+    const val TRIGGER_SLEEP_MODE = "2"
+    const val TRIGGER_WAKE_MODE = "1"
+
+    /*
+     * Enable or disable the trigger buttons
+     * @return puts the value in place
+     */
+    fun setTriggerEnabled(context: Context, enabled: Boolean) {
+        putInt(context, KEY_TRIGGER_ENABLE, if (enabled) 1 else 0)
+        HardwareControlService.requestUpdate(context)
+    }
+
+    /*
+     * Apply trigger buttons state settings
+     * @return puts the value in place
+     */
+    fun applySettings(context: Context, enabled: Boolean) {
+        setTriggerEnabled(context, enabled)
+    }
+
+    /*
+     * Restore settings on boot / resume
+     * @return puts the value in place
+     */
+    fun restoreSettings(context: Context) {
+        val triggerEnabled = getInt(context, KEY_TRIGGER_ENABLE, 0) == 1
+
+        applySettings(context, triggerEnabled)
+    }
+}

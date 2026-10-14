@@ -1,0 +1,134 @@
+/*
+ * Copyright (C) 2025 AxionOS
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.axion.gamespace.ui.viewmodel
+
+import android.content.Context
+import android.content.pm.PackageManager
+import android.graphics.drawable.Drawable
+import androidx.compose.runtime.*
+import androidx.lifecycle.ViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import com.android.axion.gamespace.R
+import com.android.axion.gamespace.data.*
+import com.android.axion.gamespace.utils.GameModeUtils
+import javax.inject.Inject
+
+@HiltViewModel
+class PerAppSettingsViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
+    private val systemSettings: SystemSettings,
+    private val gameModeUtils: GameModeUtils
+) : ViewModel() {
+
+    var packageName by mutableStateOf("")
+        private set
+
+    var gameLabel by mutableStateOf("")
+        private set
+
+    var gameIcon by mutableStateOf<Drawable?>(null)
+        private set
+
+    var preferredMode by mutableIntStateOf(1)
+        private set
+
+    var force120Hz by mutableStateOf(false)
+        private set
+
+    var highTouchPolling by mutableStateOf(false)
+        private set
+
+    var angleDriverChoice by mutableStateOf(GameModeUtils.DRIVER_CHOICE_DEFAULT)
+        private set
+
+    var angleFeatureAvailable by mutableStateOf(false)
+        private set
+
+    val gameModeOptions = listOf(
+        1 to context.getString(R.string.game_mode_standard_cpu),
+        2 to context.getString(R.string.game_mode_performance_cpu),
+        3 to context.getString(R.string.game_mode_battery_cpu)
+    )
+
+    fun loadGame(pkg: String) {
+        if (pkg.isEmpty()) return
+        packageName = pkg
+
+        try {
+            val pm = context.packageManager
+            val flags = PackageManager.ApplicationInfoFlags.of(0)
+            val appInfo = pm.getApplicationInfo(pkg, flags)
+            gameLabel = appInfo.loadLabel(pm).toString()
+            gameIcon = appInfo.loadIcon(pm)
+        } catch (e: PackageManager.NameNotFoundException) {
+            return
+        }
+
+        val userGame = systemSettings.userGames.firstOrNull { it.packageName == pkg }
+        preferredMode = userGame?.mode ?: 1
+        force120Hz = userGame?.force120Hz ?: false
+        highTouchPolling = userGame?.highTouchPolling ?: false
+
+        val hasAngle = gameModeUtils.findAnglePackage()?.isEnabled == true
+        val hasVulkan = gameModeUtils.isVulkanSupported()
+        angleFeatureAvailable = hasAngle && hasVulkan
+        angleDriverChoice = gameModeUtils.getAngleDriverChoice(pkg)
+    }
+
+    fun updatePreferredMode(mode: Int) {
+        preferredMode = mode
+        gameModeUtils.setGameModeFor(packageName, systemSettings, mode)
+    }
+
+    fun updateForce120Hz(enabled: Boolean) {
+        force120Hz = enabled
+        updateUserGame { it.copy(force120Hz = enabled) }
+    }
+
+    fun updateHighTouchPolling(enabled: Boolean) {
+        highTouchPolling = enabled
+        updateUserGame { it.copy(highTouchPolling = enabled) }
+    }
+
+    private fun updateUserGame(transform: (UserGame) -> UserGame) {
+        if (packageName.isEmpty()) return
+        val games = systemSettings.userGames.toMutableList()
+        val index = games.indexOfFirst { it.packageName == packageName }
+        val current = games.getOrNull(index) ?: UserGame(packageName)
+        if (index >= 0) games[index] = transform(current) else games.add(transform(current))
+        systemSettings.userGames = games
+    }
+
+    val angleDriverOptions = listOf(
+        GameModeUtils.DRIVER_CHOICE_DEFAULT to "Default",
+        GameModeUtils.DRIVER_CHOICE_ANGLE to "ANGLE",
+        GameModeUtils.DRIVER_CHOICE_NATIVE to "Native"
+    )
+
+    fun updateAngleDriverChoice(choice: String) {
+        angleDriverChoice = choice
+        gameModeUtils.setAngleDriverChoice(packageName, choice)
+    }
+
+    fun unregisterGame() {
+        gameModeUtils.setAngleDriverChoice(packageName, GameModeUtils.DRIVER_CHOICE_DEFAULT)
+        systemSettings.removePerformanceMode(packageName)
+        val games = systemSettings.userGames.toMutableList()
+        games.removeIf { it.packageName == packageName }
+        systemSettings.userGames = games
+    }
+}

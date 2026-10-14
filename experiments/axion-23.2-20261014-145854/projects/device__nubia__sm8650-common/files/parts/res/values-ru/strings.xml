@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     SPDX-FileCopyrightText: 2025-2026 GAME-OVER-op
+     SPDX-License-Identifier: Apache-2.0
+-->
+<resources>
+    <string name="nubia_title">Настройки Nubia</string>
+    <string name="nubia_summary">Дополнительные возможности устройства</string>
+
+    <string name="fan_control_title">Управление кулером</string>
+    <string name="fan_control_summary">Режим и скорость системы охлаждения</string>
+    <string name="fan_enable_title">Включить кулер</string>
+    <string name="fan_enable_summary">Разрешить работу кулера</string>
+    <string name="fan_speed_title">Скорость кулера</string>
+    <string name="fan_speed_summary">Уровень скорости в ручном режиме</string>
+    <string name="fan_mode_title">Режим кулера</string>
+    <string name="fan_mode_manual">Ручной</string>
+    <string name="fan_mode_auto">Автоматический по температурной кривой</string>
+    <string name="fan_curve_title">Автоматическая кривая кулера</string>
+    <string name="fan_curve_summary">Температура включения для каждого уровня скорости</string>
+    <string name="fan_curve_dialog_title">Температурная кривая кулера</string>
+    <string name="fan_curve_dialog_message">Каждый уровень включается при заданной температуре ЦП. Пороговые значения автоматически сохраняются по возрастанию.</string>
+    <string name="fan_curve_speed">Скорость %1$d</string>
+    <string name="fan_curve_temperature_unit">°C</string>
+
+    <string name="trigger_buttons_title">Сенсорные триггеры</string>
+    <string name="trigger_buttons_summary">Триггеры для выбранных приложений</string>
+    <string name="trigger_buttons_enable_title">Включить триггеры</string>
+    <string name="trigger_buttons_enable_summary">Использовать плечевые триггеры только в настроенных приложениях</string>
+    <string name="trigger_selected_apps_title">Настроенные приложения</string>
+    <string name="trigger_choose_apps_title">Выбрать приложения</string>
+    <string name="trigger_choose_apps_summary">Выберите игры и приложения, в которых разрешены триггеры</string>
+    <string name="trigger_apps_list_title">Приложения</string>
+    <string name="trigger_no_apps_selected">Приложения не выбраны</string>
+    <string name="trigger_app_summary">Левый: %1$s · Правый: %2$s</string>
+    <string name="trigger_left_title">Левый триггер</string>
+    <string name="trigger_right_title">Правый триггер</string>
+    <string name="trigger_coordinates_summary">Точка касания: %1$d, %2$d</string>
+    <string name="trigger_coordinates_missing">Точка касания не откалибрована</string>
+    <string name="trigger_calibrate_title">Настроить точки касания</string>
+    <string name="trigger_calibrate_summary">Запустить приложение и поставить бирюзовую и красную точки на его кнопки</string>
+    <string name="trigger_calibration_hint">Перетащите L (бирюзовую) и R (красную) на кнопки игры</string>
+    <string name="trigger_enable_side_first">Перед калибровкой включите хотя бы один триггер</string>
+    <string name="trigger_app_launch_failed">Это приложение невозможно запустить</string>
+    <string name="trigger_coordinates_saved">Координаты триггеров сохранены</string>
+
+    <string name="lighting_title">RGB-подсветка</string>
+    <string name="lighting_summary">Подсветка кулера, триггеров и уведомлений</string>
+    <string name="lighting_enable">Включить подсветку</string>
+    <string name="lighting_mode">Режим</string>
+    <string name="lighting_effect">Цвет / эффект</string>
+    <string name="lighting_fan_category">Подсветка кулера</string>
+    <string name="lighting_trigger_category">Подсветка триггеров</string>
+    <string name="lighting_trigger_summary">Работает только при активных триггерах в настроенном приложении</string>
+    <string name="lighting_notification_category">Подсветка уведомлений</string>
+    <string name="lighting_notification_summary">Внешняя подсветка работает только при выключенном экране</string>
+    <string name="notification_listener_label">Подсветка уведомлений Nubia</string>
+
+    <string name="hbm_title">Режим высокой яркости</string>
+    <string name="hbm_summary">Автоматическая или постоянная максимальная яркость экрана</string>
+    <string name="hbm_mode_title">Режим HBM</string>
+    <string name="hbm_mode_off">Выключен</string>
+    <string name="hbm_mode_auto">Автоматически</string>
+    <string name="hbm_mode_forced">Принудительно</string>
+    <string name="hbm_lux_on_title">Порог включения</string>
+    <string name="hbm_lux_on_summary">Освещённость, при которой автоматический HBM включается</string>
+    <string name="hbm_lux_off_title">Порог выключения</string>
+    <string name="hbm_lux_off_summary">Освещённость, ниже которой автоматический HBM выключается</string>
+    <string name="hbm_forced_warning">Принудительный HBM увеличивает расход энергии и нагрев экрана. При выключении экрана он гаснет и сразу восстанавливается после включения.</string>
+    <string name="hbm_tile_title">HBM</string>
+
+    <string name="state_enabled">включён</string>
+    <string name="state_disabled">выключен</string>
+    <string name="action_save">Сохранить</string>
+    <string name="action_cancel">Отмена</string>
+</resources>

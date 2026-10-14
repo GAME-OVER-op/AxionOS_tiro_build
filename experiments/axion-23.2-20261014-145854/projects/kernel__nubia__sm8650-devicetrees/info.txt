@@ -1,0 +1,17 @@
+REPO_PATH=kernel/nubia/sm8650-devicetrees
+HEAD=5e29b7e2f2944c6fa96a9f6ddc82615de1abc8fc
+
+===== REMOTES =====
+github-nubia	https://github.com/nubia-sm8650-devs/android_kernel_nubia_sm8650-devicetrees (fetch)
+github-nubia	https://github.com/nubia-sm8650-devs/android_kernel_nubia_sm8650-devicetrees (push)
+
+===== BRANCHES =====
+* local/axion-tiro-23.2             5e29b7e2 zte: use oneshot keys for switch
+  remotes/github-nubia/lineage-23.2 5e29b7e2 zte: use oneshot keys for switch
+  remotes/m/lineage-23.2            -> github-nubia/lineage-23.2
+
+===== STATUS =====
+ M qcom/pineapple.dtsi
+
+===== LOCAL-ONLY COMMITS =====
+

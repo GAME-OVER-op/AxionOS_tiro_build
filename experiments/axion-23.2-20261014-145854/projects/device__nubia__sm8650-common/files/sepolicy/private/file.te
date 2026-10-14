@@ -1,0 +1,12 @@
+# Fan control
+type sysfs_fan, fs_type, sysfs_type;
+
+# Display high brightness mode
+
+# Trigger buttons
+type proc_touchkey, fs_type, proc_type;
+
+# Nubia hardware control service
+type tiro_hardware_service_exec, exec_type, file_type, system_file_type;
+type tiro_hardware_data_file, file_type, data_file_type, core_data_file_type;
+type sysfs_tiro_rgb, fs_type, sysfs_type;

@@ -1,0 +1,21 @@
+REPO_PATH=device/nubia/tiro
+HEAD=6246219d656c1f63e8966088cdf794f2fb78b050
+
+===== REMOTES =====
+github-nubia	https://github.com/nubia-sm8650-devs/android_device_nubia_tiro (fetch)
+github-nubia	https://github.com/nubia-sm8650-devs/android_device_nubia_tiro (push)
+
+===== BRANCHES =====
+* local/axion-tiro-23.2             6246219 Hide display cutout emulation setting on Tiro
+  remotes/github-nubia/lineage-23.2 fc515f3 tiro: Update blobs to REDMAGICOS10.0.7MR1_GB
+  remotes/m/lineage-23.2            -> github-nubia/lineage-23.2
+
+===== STATUS =====
+ M BoardConfig.mk
+ M device.mk
+ M lineage_tiro.mk
+?? rootdir/
+
+===== LOCAL-ONLY COMMITS =====
+9fa985a1541b96115734db32a220261b3fe9eb0c
+6246219d656c1f63e8966088cdf794f2fb78b050

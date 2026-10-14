@@ -1,0 +1,7 @@
+// SPDX-FileCopyrightText: 2026 The AxionOS Tiro maintainers
+// SPDX-License-Identifier: Apache-2.0
+
+runtime_resource_overlay {
+    name: "SettingsOverlayTiro",
+    device_specific: true,
+}

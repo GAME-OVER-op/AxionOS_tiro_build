@@ -1,0 +1,16 @@
+axion_sdk
+device/axion/common
+device/nubia/sm8650-common
+device/nubia/tiro
+frameworks/base
+hardware/qcom-caf/sm8650/audio/primary-hal
+kernel/nubia/sm8650
+kernel/nubia/sm8650-devicetrees
+packages/apps/AxionParts
+packages/apps/AxWallpaperEffects
+packages/apps/GameSpace
+packages/apps/LineageParts
+packages/apps/Settings
+prebuilts/clang/host/linux-x86
+vendor/lineage
+vendor/nubia/tiro

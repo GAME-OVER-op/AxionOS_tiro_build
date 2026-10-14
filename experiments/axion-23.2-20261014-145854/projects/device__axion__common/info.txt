@@ -1,0 +1,18 @@
+REPO_PATH=device/axion/common
+HEAD=741acb108fe119d0fdbb3bcbbba9333bb24923c8
+
+===== REMOTES =====
+axion	https://github.com/AxionAOSP/android_device_axion_common (fetch)
+axion	https://github.com/AxionAOSP/android_device_axion_common (push)
+
+===== BRANCHES =====
+* (no branch)                        741acb1 Use concise AxionOS build version on Tiro
+  axion-tiro-version-20261012-234053 741acb1 Use concise AxionOS build version on Tiro
+  remotes/axion/lineage-23.2         9569134 version: Bump to v2.9 NOESIS * oct patch
+  remotes/m/lineage-23.2             -> axion/lineage-23.2
+
+===== STATUS =====
+ M init/init.axion.rc
+
+===== LOCAL-ONLY COMMITS =====
+741acb108fe119d0fdbb3bcbbba9333bb24923c8

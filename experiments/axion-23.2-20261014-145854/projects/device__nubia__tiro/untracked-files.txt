@@ -1,0 +1,1 @@
+rootdir/etc/init.tiro.cpu-game.rc

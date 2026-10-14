@@ -1,0 +1,10 @@
+type devicesettings_app, domain;
+app_domain(devicesettings_app)
+
+allow devicesettings_app {
+    app_api_service
+}:service_manager find;
+
+allow devicesettings_app tiro_hardware_data_file:dir create_dir_perms;
+allow devicesettings_app tiro_hardware_data_file:file create_file_perms;
+allow devicesettings_app system_data_file:dir search;

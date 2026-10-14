@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     SPDX-FileCopyrightText: 2025-2026 GAME-OVER-op
+     SPDX-License-Identifier: Apache-2.0
+-->
+<resources>
+    <style name="Theme.NubiaParts.Calibration" parent="android:style/Theme.Material.NoActionBar">
+        <item name="android:backgroundDimEnabled">false</item>
+        <item name="android:fontFamily">sans</item>
+        <item name="android:windowActionModeOverlay">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowCloseOnTouchOutside">false</item>
+        <item name="android:windowDisablePreview">true</item>
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowNoTitle">true</item>
+    </style>
+</resources>

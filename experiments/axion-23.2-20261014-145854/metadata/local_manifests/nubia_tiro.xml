@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+    <remote name="github-nubia" fetch="https://github.com/" />
+
+    <project
+        name="nubia-sm8650-devs/android_device_nubia_tiro"
+        path="device/nubia/tiro"
+        remote="github-nubia"
+        revision="lineage-23.2" />
+
+    <project
+        name="nubia-sm8650-devs/android_device_nubia_sm8650-common"
+        path="device/nubia/sm8650-common"
+        remote="github-nubia"
+        revision="lineage-23.2" />
+
+    <project
+        name="nubia-sm8650-devs/proprietary_vendor_nubia_tiro"
+        path="vendor/nubia/tiro"
+        remote="github-nubia"
+        revision="lineage-23.2" />
+
+    <project
+        name="nubia-sm8650-devs/proprietary_vendor_nubia_sm8650-common"
+        path="vendor/nubia/sm8650-common"
+        remote="github-nubia"
+        revision="lineage-23.2" />
+
+    <project
+        name="nubia-sm8650-devs/android_kernel_nubia_sm8650"
+        path="kernel/nubia/sm8650"
+        remote="github-nubia"
+        revision="lineage-23.2" />
+
+    <project
+        name="nubia-sm8650-devs/android_kernel_nubia_sm8650-modules"
+        path="kernel/nubia/sm8650-modules"
+        remote="github-nubia"
+        revision="lineage-23.2" />
+
+    <project
+        name="nubia-sm8650-devs/android_kernel_nubia_sm8650-devicetrees"
+        path="kernel/nubia/sm8650-devicetrees"
+        remote="github-nubia"
+        revision="lineage-23.2" />
+</manifest>

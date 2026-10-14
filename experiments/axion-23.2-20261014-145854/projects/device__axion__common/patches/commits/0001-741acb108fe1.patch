@@ -1,0 +1,12 @@
+commit 741acb108fe119d0fdbb3bcbbba9333bb24923c8
+Author:     ggover <ggover@localhost>
+AuthorDate: Mon Oct 12 23:40:53 2026 +0000
+Commit:     ggover <ggover@localhost>
+CommitDate: Mon Oct 12 23:40:53 2026 +0000
+
+    Use concise AxionOS build version on Tiro
+    
+    Change-Id: I2379e24a2cde74b220ed91900ea3c130da27bd32
+
+ config/version.mk | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)

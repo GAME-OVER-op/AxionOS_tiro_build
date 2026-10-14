@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ax_about_title">О телефоне</string>
+    <string name="ax_about_loading">Загрузка информации об устройстве…</string>
+    <string name="ax_about_unavailable">Не удалось получить сведения об устройстве</string>
+    <string name="ax_about_device_name">Имя устройства</string>
+    <string name="ax_about_rear">Основная: %1$s</string>
+    <string name="ax_about_front">Фронтальная: %1$s</string>
+    <string name="ax_about_processor">Процессор</string>
+    <string name="ax_about_camera">Камеры</string>
+    <string name="ax_about_ram">ОЗУ</string>
+    <string name="ax_about_storage">Хранилище</string>
+    <string name="ax_about_battery">Аккумулятор</string>
+    <string name="ax_about_screen">Экран</string>
+    <string name="ax_about_device_details">Сведения об устройстве</string>
+    <string name="ax_about_android_version">Версия Android</string>
+    <string name="ax_about_security_patch">Обновление безопасности</string>
+    <string name="ax_about_build_date">Дата сборки</string>
+    <string name="ax_about_kernel">Версия ядра</string>
+    <string name="ax_about_see_all">Показать всё</string>
+    <string name="ax_about_edit_device_name">Изменить имя устройства</string>
+    <string name="ax_about_save">Сохранить</string>
+    <string name="ax_about_cancel">Отмена</string>
+</resources>

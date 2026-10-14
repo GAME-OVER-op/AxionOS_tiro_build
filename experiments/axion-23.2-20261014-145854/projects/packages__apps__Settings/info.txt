@@ -1,0 +1,19 @@
+REPO_PATH=packages/apps/Settings
+HEAD=237c9b84d81ad79136c0b9ebb16a6b638aca6c91
+
+===== REMOTES =====
+axion	https://github.com/AxionAOSP/android_packages_apps_Settings (fetch)
+axion	https://github.com/AxionAOSP/android_packages_apps_Settings (push)
+
+===== BRANCHES =====
+* (no branch)                237c9b84d81 Make display cutout emulation setting device-configurable
+  axion-about-phone-fix      b774d8dd5ed Open maintainer GitHub profile from About phone
+  axion-hide-cutout-tiro     237c9b84d81 Make display cutout emulation setting device-configurable
+  remotes/axion/lineage-23.2 f46fe16e0f5 Merge pull request #19 from NoCache-69/lineage-23.2
+  remotes/m/lineage-23.2     -> axion/lineage-23.2
+
+===== STATUS =====
+
+===== LOCAL-ONLY COMMITS =====
+b774d8dd5edca7e4a8676d4532b1d764ec0636db
+237c9b84d81ad79136c0b9ebb16a6b638aca6c91

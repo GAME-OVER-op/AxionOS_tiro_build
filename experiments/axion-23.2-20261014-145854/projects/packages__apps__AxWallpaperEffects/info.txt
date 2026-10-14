@@ -1,0 +1,17 @@
+REPO_PATH=packages/apps/AxWallpaperEffects
+HEAD=a45482a2eb6f7f7fd68d3256d73ccfbac889d986
+
+===== REMOTES =====
+axion	https://github.com/AxionAOSP/android_packages_apps_AxWallpaperEffects (fetch)
+axion	https://github.com/AxionAOSP/android_packages_apps_AxWallpaperEffects (push)
+
+===== BRANCHES =====
+* local/axion-tiro-23.2      a45482a fixing wallpaper depth offset
+  remotes/axion/lineage-23.2 a45482a fixing wallpaper depth offset
+  remotes/m/lineage-23.2     -> axion/lineage-23.2
+
+===== STATUS =====
+ M Android.bp
+
+===== LOCAL-ONLY COMMITS =====
+

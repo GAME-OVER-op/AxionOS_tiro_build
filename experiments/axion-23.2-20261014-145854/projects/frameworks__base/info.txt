@@ -1,0 +1,22 @@
+REPO_PATH=frameworks/base
+HEAD=b56e504202e0035347528fc94175e8370ab6906d
+
+===== REMOTES =====
+axion	https://github.com/AxionAOSP/android_frameworks_base (fetch)
+axion	https://github.com/AxionAOSP/android_frameworks_base (push)
+
+===== BRANCHES =====
+* (no branch)                            b56e504202e0 Restore LineageOS network traffic indicator in SystemUI
+  axion-network-traffic-20261013-000405  b56e504202e0 Restore LineageOS network traffic indicator in SystemUI
+  axion-shade-camera-fix-20261012-232752 98ca1170e69b Keep QS header at screen edges and restore camera protection on rotation
+  remotes/axion/lineage-23.2             4ad3af9c44be Fix potential OOM in PduParser by using stream skip
+  remotes/m/lineage-23.2                 -> axion/lineage-23.2
+
+===== STATUS =====
+ M packages/SystemUI/res/xml/qqs_header.xml
+ M packages/SystemUI/src/com/android/systemui/shade/CombinedShadeHeadersConstraintManagerImpl.kt
+ M services/core/java/com/android/server/display/brightness/HbmService.java
+
+===== LOCAL-ONLY COMMITS =====
+98ca1170e69b4b791f075928afae542ac68a7174
+b56e504202e0035347528fc94175e8370ab6906d

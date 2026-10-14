@@ -1,0 +1,317 @@
+diff --git a/ax_compose/src/com/android/axion/compose/about/AxionAboutScreen.kt b/ax_compose/src/com/android/axion/compose/about/AxionAboutScreen.kt
+index ddd90cf9e25281388800ea420e3aab624c2fd944..8dfb4c0f5858765606811029be407749224ddd8c 100644
+--- a/ax_compose/src/com/android/axion/compose/about/AxionAboutScreen.kt
++++ b/ax_compose/src/com/android/axion/compose/about/AxionAboutScreen.kt
+@@ -82,6 +82,7 @@ import androidx.compose.ui.layout.ContentScale
+ import androidx.compose.ui.platform.LocalConfiguration
+ import androidx.compose.ui.platform.LocalContext
+ import androidx.compose.ui.platform.LocalDensity
++import androidx.compose.ui.res.painterResource
+ import androidx.compose.ui.res.stringResource
+ import androidx.compose.ui.text.style.TextOverflow
+ import androidx.compose.ui.unit.dp
+@@ -187,6 +188,7 @@ fun AxionAboutScreen(
+                 } else {
+                     BannerSection(
+                         version = info.axionVersion,
++                        androidVersion = info.androidVersion,
+                         buildType = info.axionBuildType,
+                         maintainer = info.maintainer,
+                         deviceName = deviceName,
+@@ -200,18 +202,13 @@ fun AxionAboutScreen(
+                         rearCamera = stringResource(R.string.ax_about_rear, info.rearCamera),
+                         frontCamera = stringResource(R.string.ax_about_front, info.frontCamera),
+                         ram = info.totalRam,
+-                        storage = info.storageTotal,
++                        storage = if (info.storageUsed == "—" || info.storageTotal == "—") {
++                            info.storageTotal
++                        } else "${info.storageUsed} / ${info.storageTotal}",
+                         battery = info.batteryCapacity,
+                         screen = info.screenSize.ifBlank { info.screenResolution },
+                         isTablet = isTablet,
+                     )
+-                    DeviceDetailsSection(
+-                        androidVersion = info.androidVersion,
+-                        securityPatch = info.securityPatch,
+-                        buildDate = info.buildDate,
+-                        kernelVersion = info.kernelVersion,
+-                        onSeeAll = onNavigateToDeviceInfo,
+-                    )
+                 }
+                 Spacer(Modifier.height(16.dp))
+             }
+@@ -233,6 +230,7 @@ fun AxionAboutScreen(
+ @Composable
+ private fun BannerSection(
+     version: String,
++    androidVersion: String,
+     buildType: String,
+     maintainer: String,
+     deviceName: String,
+@@ -243,48 +241,40 @@ private fun BannerSection(
+ ) {
+     val cardRadius = RoundedCornerShape(24.dp)
+     val surfaceColor = MaterialTheme.colorScheme.surfaceBright
+-
+-    // No canvas 'bridges' between cards: these caused seams on narrow displays.
+     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+-        BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+-            val stacked = maxWidth < 300.dp
+-            if (stacked) {
+-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+-                    BuildIdentityCard(
+-                        modifier = Modifier.fillMaxWidth(),
+-                        color = surfaceColor,
+-                        shape = cardRadius,
+-                        version = version,
+-                        buildType = buildType,
+-                        maintainer = maintainer,
+-                        onMaintainerClick = onMaintainerClick,
+-                    )
+-                    PhonePreviewCard(
+-                        modifier = Modifier.fillMaxWidth().height(205.dp),
+-                        color = surfaceColor,
+-                        shape = cardRadius,
+-                        wallpaperHolder = wallpaperHolder,
+-                        isTablet = isTablet,
+-                    )
+-                }
+-            } else {
+-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+-                    BuildIdentityCard(
+-                        modifier = Modifier.weight(1f).heightIn(min = 268.dp),
+-                        color = surfaceColor,
+-                        shape = cardRadius,
+-                        version = version,
+-                        buildType = buildType,
+-                        maintainer = maintainer,
+-                        onMaintainerClick = onMaintainerClick,
+-                    )
+-                    PhonePreviewCard(
+-                        modifier = Modifier.weight(1f).heightIn(min = 268.dp),
+-                        color = surfaceColor,
+-                        shape = cardRadius,
+-                        wallpaperHolder = wallpaperHolder,
+-                        isTablet = isTablet,
+-                    )
++        // The AxionOS logo belongs to the artwork. The build, maintainer and
++        // Android release are live text, not baked-in data that goes stale.
++        Surface(
++            modifier = Modifier.fillMaxWidth().height(if (isTablet) 320.dp else 252.dp),
++            shape = cardRadius,
++            color = surfaceColor,
++        ) {
++            Box(modifier = Modifier.fillMaxSize()) {
++                Image(
++                    painter = painterResource(R.drawable.axion_about_banner),
++                    contentDescription = null,
++                    contentScale = ContentScale.Crop,
++                    modifier = Modifier.fillMaxSize(),
++                )
++                Row(
++                    modifier = Modifier.fillMaxSize().padding(12.dp),
++                    verticalAlignment = Alignment.Bottom,
++                    horizontalArrangement = Arrangement.spacedBy(6.dp),
++                ) {
++                    Column(
++                        modifier = Modifier.weight(1f),
++                        verticalArrangement = Arrangement.spacedBy(6.dp),
++                    ) {
++                        BannerPill(version)
++                        BannerPill(
++                            maintainer,
++                            modifier = Modifier.clickable(
++                                enabled = maintainer != "—",
++                                onClick = onMaintainerClick,
++                            ),
++                        )
++                    }
++                    BannerPill("Android $androidVersion")
+                 }
+             }
+         }
+@@ -314,60 +304,20 @@ private fun BannerSection(
+ }
+ 
+ @Composable
+-private fun BuildIdentityCard(
+-    modifier: Modifier,
+-    color: Color,
+-    shape: RoundedCornerShape,
+-    version: String,
+-    buildType: String,
+-    maintainer: String,
+-    onMaintainerClick: () -> Unit,
+-) {
+-    Surface(modifier = modifier, shape = shape, color = color) {
+-        Column(
+-            modifier = Modifier.fillMaxSize().padding(16.dp),
+-            verticalArrangement = Arrangement.SpaceBetween,
+-        ) {
+-            Column {
+-                @OptIn(ExperimentalMaterial3ExpressiveApi::class)
+-                Text(
+-                    text = "AXIONOS",
+-                    style = MaterialTheme.typography.titleMediumEmphasized,
+-                    color = MaterialTheme.colorScheme.onSurface,
+-                )
+-                Spacer(Modifier.height(8.dp))
+-                @OptIn(ExperimentalMaterial3ExpressiveApi::class)
+-                Text(
+-                    text = version,
+-                    style = MaterialTheme.typography.headlineMediumEmphasized,
+-                    color = MaterialTheme.colorScheme.onSurface,
+-                    maxLines = 2,
+-                    overflow = TextOverflow.Ellipsis,
+-                )
+-            }
+-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+-                StatusChip(buildType, maintainer, onMaintainerClick)
+-            }
+-        }
+-    }
+-}
+-
+-@Composable
+-private fun PhonePreviewCard(
+-    modifier: Modifier,
+-    color: Color,
+-    shape: RoundedCornerShape,
+-    wallpaperHolder: StableImageBitmap,
+-    isTablet: Boolean,
+-) {
+-    Surface(modifier = modifier, shape = shape, color = color) {
+-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+-            DeviceIllustration(
+-                wallpaperHolder = wallpaperHolder,
+-                isTablet = isTablet,
+-                modifier = Modifier.height(194.dp),
+-            )
+-        }
++private fun BannerPill(text: String, modifier: Modifier = Modifier) {
++    Surface(
++        modifier = modifier,
++        color = Color.Black.copy(alpha = 0.33f),
++        shape = RoundedCornerShape(50.dp),
++    ) {
++        Text(
++            text = text,
++            color = Color.White,
++            style = MaterialTheme.typography.labelSmall,
++            maxLines = 2,
++            overflow = TextOverflow.Ellipsis,
++            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
++        )
+     }
+ }
+ 
+diff --git a/ax_deviceinfo/src/com/android/axion/deviceinfo/DeviceInfoProvider.kt b/ax_deviceinfo/src/com/android/axion/deviceinfo/DeviceInfoProvider.kt
+index db65dc3495d7493317d02e8d1a532cc6f8a51e50..ca9428ff3d310974a374d5f723e450e8898bf2c3 100644
+--- a/ax_deviceinfo/src/com/android/axion/deviceinfo/DeviceInfoProvider.kt
++++ b/ax_deviceinfo/src/com/android/axion/deviceinfo/DeviceInfoProvider.kt
+@@ -222,7 +222,7 @@ object DeviceInfoProvider {
+             context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+         }.getOrNull()
+         val extraCapacity = runCatching {
+-            broadcast?.getLongExtra(BatteryManager.EXTRA_DESIGN_CAPACITY, -1L) ?: -1L
++            broadcast?.getIntExtra(BatteryManager.EXTRA_DESIGN_CAPACITY, -1)?.toLong() ?: -1L
+         }.getOrDefault(-1L)
+         val fromBroadcast = normalizeCapacityMah(extraCapacity)
+         val fromSysfs = runCatching {
+diff --git a/ax_km_server/src/com/android/server/kernel/AxKernelManagerService.java b/ax_km_server/src/com/android/server/kernel/AxKernelManagerService.java
+index 479c41085d6092be74481d5855d0b131100ee82e..32ed7f77311681aa889c5ff5478274516e293dcd 100644
+--- a/ax_km_server/src/com/android/server/kernel/AxKernelManagerService.java
++++ b/ax_km_server/src/com/android/server/kernel/AxKernelManagerService.java
+@@ -22,6 +22,7 @@ import android.os.Binder;
+ import android.os.Handler;
+ import android.os.HandlerThread;
+ import android.os.PowerManagerInternal;
++import android.os.SystemProperties;
+ import android.os.UserHandle;
+ import android.provider.Settings;
+ import android.text.TextUtils;
+@@ -42,6 +43,9 @@ import java.util.List;
+ public final class AxKernelManagerService {
+     private static final String TAG = "AxKernelManager";
+     private static final String THREAD_NAME = "AxKernelManagerService";
++    private static final boolean CONTROLS_ENABLED =
++            SystemProperties.getBoolean(
++                    "ro.axion.kernel_manager.supported", true);
+     private static final String SETTING_CPU_CLUSTER_COUNT = "ax_cpu_cluster_count";
+     private static final String SETTING_CPU_CLUSTER_PREFIX = "ax_cpu_cluster_";
+     private static final String SETTING_CPU_CLUSTER_SUFFIX = "_freqs";
+@@ -85,7 +89,23 @@ public final class AxKernelManagerService {
+     }
+ 
+     public void systemReady() {
++        /*
++         * Always load the metrics configuration so AxDiagnostics can continue
++         * reading CPU/GPU statistics. On devices without writable kernel
++         * controls, discard discovered controls before any persisted values
++         * or observers can write to sysfs.
++         */
+         refreshControls();
++
++        if (!CONTROLS_ENABLED) {
++            synchronized (mLock) {
++                mControls.clear();
++                mUriToControl.clear();
++            }
++            Slog.i(TAG, "Kernel controls disabled; metrics remain available");
++            return;
++        }
++
+         applyPersistedValues();
+         synchronized (mLock) {
+             for (KernelControlNode control : mControls.values()) {
+diff --git a/ax_ocr/Android.bp b/ax_ocr/Android.bp
+index 56e5a81c81e247f43c4f4679f4c0df69d78f96e7..f256bc2402a678645241212cc975484294687d31 100644
+--- a/ax_ocr/Android.bp
++++ b/ax_ocr/Android.bp
+@@ -21,7 +21,7 @@ android_library {
+ 
+     required: [
+         "libtensorflowlite_jni",
+-        "libtensorflowlite_gpu_jni",
++        "libaxion_tensorflowlite_gpu_jni",
+     ],
+ 
+     sdk_version: "system_current",
+diff --git a/ax_ocr/common.mk b/ax_ocr/common.mk
+index faebdeec0ce54e4957803051e93d953334f78566..17543fd6a21c1ce52b1a000ba8153da57ac17147 100644
+--- a/ax_ocr/common.mk
++++ b/ax_ocr/common.mk
+@@ -1,6 +1,6 @@
+ PRODUCT_PACKAGES += \
+     libtensorflowlite_jni \
+-    libtensorflowlite_gpu_jni
++    libaxion_tensorflowlite_gpu_jni
+ 
+ PRODUCT_ARTIFACT_PATH_REQUIREMENT_ALLOWED_LIST += \
+     system/lib/libtensorflowlite_jni.so \
+diff --git a/ax_tflite/Android.bp b/ax_tflite/Android.bp
+index 761f8b412473a757871a55cba5e345ee579ce002..270bf147dee467f7aae74947ef29d0a01ef844e0 100644
+--- a/ax_tflite/Android.bp
++++ b/ax_tflite/Android.bp
+@@ -15,7 +15,8 @@ android_library_import {
+ }
+ 
+ cc_prebuilt_library_shared {
+-    name: "libtensorflowlite_gpu_jni",
++    name: "libaxion_tensorflowlite_gpu_jni",
++    stem: "libtensorflowlite_gpu_jni",
+     arch: {
+         arm64: {
+             srcs: ["libs/tensorflow-lite-gpu-jni/arm64-v8a/libtensorflowlite_gpu_jni.so"],
+diff --git a/ax_tflite/common.mk b/ax_tflite/common.mk
+index 13b0f2c0524a4d4b9c87d18bfcfc583b753cc1b1..c74f31c7403419a5d481d2c6bc10ac034339d239 100644
+--- a/ax_tflite/common.mk
++++ b/ax_tflite/common.mk
+@@ -1,6 +1,6 @@
+ PRODUCT_PACKAGES += \
+     libtensorflowlite_jni \
+-    libtensorflowlite_gpu_jni \
++    libaxion_tensorflowlite_gpu_jni \
+     libtensorflowlite_xnnpack_jni
+ 
+ PRODUCT_ARTIFACT_PATH_REQUIREMENT_ALLOWED_LIST += \

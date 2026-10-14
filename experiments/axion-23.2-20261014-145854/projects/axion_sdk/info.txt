@@ -1,0 +1,24 @@
+REPO_PATH=axion_sdk
+HEAD=ccc78ad5ad3462c76a3ce48e8be0b7c9bd27a602
+
+===== REMOTES =====
+axion	https://github.com/AxionAOSP/android_axion_sdk (fetch)
+axion	https://github.com/AxionAOSP/android_axion_sdk (push)
+
+===== BRANCHES =====
+* local/axion-tiro-23.2      ccc78ad Improve AxionOS about screen and dynamic device information
+  remotes/axion/lineage-23.2 2edaf6d [ax_sysui] fixing qs overscroll collapse animation
+  remotes/m/lineage-23.2     -> axion/lineage-23.2
+
+===== STATUS =====
+ M ax_compose/src/com/android/axion/compose/about/AxionAboutScreen.kt
+ M ax_deviceinfo/src/com/android/axion/deviceinfo/DeviceInfoProvider.kt
+ M ax_km_server/src/com/android/server/kernel/AxKernelManagerService.java
+ M ax_ocr/Android.bp
+ M ax_ocr/common.mk
+ M ax_tflite/Android.bp
+ M ax_tflite/common.mk
+?? ax_compose/res/drawable-nodpi/
+
+===== LOCAL-ONLY COMMITS =====
+ccc78ad5ad3462c76a3ce48e8be0b7c9bd27a602

@@ -1,0 +1,825 @@
+diff --git a/app/src/main/Android.bp b/app/src/main/Android.bp
+index de782df58b8969e4de89613beb5b1abf99b3a6d7..b8597718e7ecca7e9e0ddf0559ccc7d6be42aee6 100644
+--- a/app/src/main/Android.bp
++++ b/app/src/main/Android.bp
+@@ -42,6 +42,7 @@ android_app {
+         "ax_platform_hooks",
+         "androidx.palette_palette",
+         "PlatformComposeSceneTransitionLayout",
++        "vendor.lineage.touch-V1-java",
+     ],
+ 
+     kotlincflags: [
+diff --git a/app/src/main/AndroidManifest.xml b/app/src/main/AndroidManifest.xml
+index 0dcc00978c254ff44a515429124c98dbacd63c2f..07c2284ffce091cc4072f1bfdcd6352931786e05 100644
+--- a/app/src/main/AndroidManifest.xml
++++ b/app/src/main/AndroidManifest.xml
+@@ -19,6 +19,7 @@
+     package="com.android.axion.gamespace"
+     android:sharedUserId="android.uid.system">
+ 
++    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+     <uses-permission android:name="android.permission.GET_TASKS" />
+     <uses-permission android:name="android.permission.INTERACT_ACROSS_USERS" />
+     <uses-permission android:name="android.permission.MANAGE_GAME_MODE" />
+@@ -73,6 +74,19 @@
+             android:exported="false"
+             android:configChanges="orientation|screenSize" />
+ 
++        <service
++            android:name=".gamebar.GameSliderService"
++            android:directBootAware="true"
++            android:exported="false" />
++
++        <receiver
++            android:name=".gamebar.GameSliderBootReceiver"
++            android:exported="false">
++            <intent-filter>
++                <action android:name="android.intent.action.BOOT_COMPLETED" />
++            </intent-filter>
++        </receiver>
++
+         <service
+             android:name=".gamebar.DanmakuServiceListener"
+             android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
+diff --git a/app/src/main/java/com/android/axion/gamespace/GameSpace.kt b/app/src/main/java/com/android/axion/gamespace/GameSpace.kt
+index ab21d3c4b05e55626f27019c6985dc4db69b2324..a443b018f1921ccadd18d0b97c632f4cba4ce428 100644
+--- a/app/src/main/java/com/android/axion/gamespace/GameSpace.kt
++++ b/app/src/main/java/com/android/axion/gamespace/GameSpace.kt
+@@ -17,7 +17,9 @@
+ package com.android.axion.gamespace
+ 
+ import android.app.Application
++import android.content.Intent
+ import android.util.Log
++import com.android.axion.gamespace.gamebar.GameSliderService
+ import dagger.hilt.android.HiltAndroidApp
+ 
+ @HiltAndroidApp(Application::class)
+@@ -28,5 +30,6 @@ class GameSpace : Hilt_GameSpace() {
+     override fun onCreate() {
+         super.onCreate()
+         Log.d(TAG, "Application created")
++        startService(Intent(this, GameSliderService::class.java))
+     }
+ }
+diff --git a/app/src/main/java/com/android/axion/gamespace/data/GameSession.kt b/app/src/main/java/com/android/axion/gamespace/data/GameSession.kt
+index 418189ac3cabd8a1e4ec37881d9292f2632c1940..9d47f30d9c49f992833a1065b8b26e697d8a5f22 100644
+--- a/app/src/main/java/com/android/axion/gamespace/data/GameSession.kt
++++ b/app/src/main/java/com/android/axion/gamespace/data/GameSession.kt
+@@ -52,16 +52,22 @@ class GameSession @Inject constructor(
+             } ?: "")
+             .apply()
+ 
+-    fun register(sessionName: String) {
+-        if (state?.packageName != sessionName) unregister()
++    fun register(game: UserGame) {
++        if (state?.packageName != game.packageName) unregister()
+ 
+         state = SessionState(
+-            packageName = sessionName,
++            packageName = game.packageName,
+             autoBrightness = systemSettings.autoBrightness,
+             headsup = systemSettings.headsup,
+             threeScreenshot = systemSettings.threeScreenshot,
+             ringerMode = audioManager.ringerModeInternal,
++            refreshRateForced = game.force120Hz,
++            peakRefreshRate = if (game.force120Hz) systemSettings.peakRefreshRateRaw else null,
++            minRefreshRate = if (game.force120Hz) systemSettings.minRefreshRateRaw else null,
+         )
++        if (game.force120Hz) {
++            systemSettings.forceGameRefreshRate120()
++        }
+         if (appSettings.noAutoBrightness) {
+             systemSettings.autoBrightness = false
+         }
+@@ -90,6 +96,9 @@ class GameSession @Inject constructor(
+         if (appSettings.ringerMode != 3) {
+             audioManager.ringerModeInternal = orig.ringerMode
+         }
++        if (orig.refreshRateForced) {
++            systemSettings.restoreRefreshRates(orig.peakRefreshRate, orig.minRefreshRate)
++        }
+         state = null
+     }
+ 
+diff --git a/app/src/main/java/com/android/axion/gamespace/data/SessionState.kt b/app/src/main/java/com/android/axion/gamespace/data/SessionState.kt
+index cfb0de9a8d54bf1e1af09d7209b16b1e12c07f91..a1a4fbbdd5d07ba8057041857158c98f0f268708 100644
+--- a/app/src/main/java/com/android/axion/gamespace/data/SessionState.kt
++++ b/app/src/main/java/com/android/axion/gamespace/data/SessionState.kt
+@@ -26,4 +26,7 @@ data class SessionState(
+     var headsup: Boolean? = null,
+     var threeScreenshot: Int = 0,
+     var ringerMode: Int = AudioManager.RINGER_MODE_NORMAL,
++    var refreshRateForced: Boolean = false,
++    var peakRefreshRate: String? = null,
++    var minRefreshRate: String? = null,
+ )
+diff --git a/app/src/main/java/com/android/axion/gamespace/data/SystemSettings.kt b/app/src/main/java/com/android/axion/gamespace/data/SystemSettings.kt
+index 033724534dc43836f97044ea9417ffc368f9c25e..a74c5413d06397d1d8abd5ca04ad6c962e730e3e 100644
+--- a/app/src/main/java/com/android/axion/gamespace/data/SystemSettings.kt
++++ b/app/src/main/java/com/android/axion/gamespace/data/SystemSettings.kt
+@@ -115,7 +115,101 @@ class SystemSettings @Inject constructor(
+                 UserHandle.USER_CURRENT
+             )
+             gameModeUtils.setupBatteryMode(games.isNotEmpty())
++            // This mapping is consumed by Tiro's CPU limiter only when the
++            // selected game is in the foreground.
++            if (android.os.Build.DEVICE == "tiro") {
++                val serialized = games.joinToString(
++                    separator = ",", postfix = if (games.isEmpty()) "" else ","
++                ) { "${it.packageName}+${UserGame.cpuProfileForMode(it.mode)}" }
++                Settings.Global.putString(resolver, PERFORMANCE_MODE_KEY, serialized)
++            }
+         }
+ 
++    var highRefreshRateEnabled
++        get() = peakRefreshRateRaw?.let { value ->
++            value.equals("Infinity", ignoreCase = true) ||
++                (value.toFloatOrNull() ?: 0f) > STANDARD_REFRESH_RATE
++        } ?: false
++        set(enabled) {
++            Settings.System.putFloatForUser(
++                resolver,
++                Settings.System.PEAK_REFRESH_RATE,
++                if (enabled) GAME_REFRESH_RATE else STANDARD_REFRESH_RATE,
++                UserHandle.USER_CURRENT,
++            )
++        }
++
++    val peakRefreshRateRaw: String?
++        get() = Settings.System.getStringForUser(
++            resolver,
++            Settings.System.PEAK_REFRESH_RATE,
++            UserHandle.USER_CURRENT,
++        )
++
++    val minRefreshRateRaw: String?
++        get() = Settings.System.getStringForUser(
++            resolver,
++            Settings.System.MIN_REFRESH_RATE,
++            UserHandle.USER_CURRENT,
++        )
++
++    fun forceGameRefreshRate120() {
++        Settings.System.putStringForUser(
++            resolver, Settings.System.PEAK_REFRESH_RATE,
++            GAME_REFRESH_RATE.toString(), UserHandle.USER_CURRENT,
++        )
++        Settings.System.putStringForUser(
++            resolver, Settings.System.MIN_REFRESH_RATE,
++            GAME_REFRESH_RATE.toString(), UserHandle.USER_CURRENT,
++        )
++    }
++
++    fun restoreRefreshRates(peak: String?, minimum: String?) {
++        Settings.System.putStringForUser(
++            resolver, Settings.System.PEAK_REFRESH_RATE,
++            peak, UserHandle.USER_CURRENT,
++        )
++        Settings.System.putStringForUser(
++            resolver, Settings.System.MIN_REFRESH_RATE,
++            minimum, UserHandle.USER_CURRENT,
++        )
++    }
++
++    fun setPerformanceMode(packageName: String, mode: Int) {
++        updatePerformanceModes(packageName, mode)
++    }
++
++    fun removePerformanceMode(packageName: String) {
++        updatePerformanceModes(packageName, null)
++    }
++
++    private fun updatePerformanceModes(packageName: String, mode: Int?) {
++        val entries = Settings.Global.getString(resolver, PERFORMANCE_MODE_KEY)
++            .orEmpty()
++            .split(',')
++            .filter(String::isNotBlank)
++            .mapNotNull { entry ->
++                val separator = entry.lastIndexOf('+')
++                if (separator <= 0) null else
++                    entry.substring(0, separator) to entry.substring(separator + 1)
++            }
++            .filterNot { (pkg, _) -> pkg == packageName }
++            .toMutableList()
++
++        if (mode != null) entries.add(packageName to mode.toString())
++
++        val serialized = if (entries.isEmpty()) "" else
++            entries.joinToString(separator = ",", postfix = ",") { (pkg, value) ->
++                "$pkg+$value"
++            }
++        Settings.Global.putString(resolver, PERFORMANCE_MODE_KEY, serialized)
++    }
++
+     private fun Boolean.toInt() = if (this) 1 else 0
++
++    companion object {
++        const val PERFORMANCE_MODE_KEY = "NubiaperformanceMode"
++        const val GAME_REFRESH_RATE = 120f
++        const val STANDARD_REFRESH_RATE = 60f
++    }
+ }
+diff --git a/app/src/main/java/com/android/axion/gamespace/data/UserGame.kt b/app/src/main/java/com/android/axion/gamespace/data/UserGame.kt
+index 6bca4b17ebef47d2fc1ddec335208f6ca76c8e29..fefc0dfe5f857b1bea41f9466a13b7feba270de2 100644
+--- a/app/src/main/java/com/android/axion/gamespace/data/UserGame.kt
++++ b/app/src/main/java/com/android/axion/gamespace/data/UserGame.kt
+@@ -18,13 +18,48 @@ package com.android.axion.gamespace.data
+ import android.app.GameManager
+ 
+ 
+-data class UserGame(val packageName: String, val mode: Int = GameManager.GAME_MODE_STANDARD) {
+-    override fun toString(): String = "$packageName=$mode"
++data class UserGame(
++    val packageName: String,
++    val mode: Int = GameManager.GAME_MODE_STANDARD,
++    val performanceMode: Int = PERFORMANCE_MODE_BALANCE,
++    val force120Hz: Boolean = false,
++    val highTouchPolling: Boolean = false,
++) {
++    override fun toString(): String = listOf(
++        packageName,
++        mode,
++        cpuProfileForMode(mode),
++        if (force120Hz) 1 else 0,
++        if (highTouchPolling) 1 else 0,
++    ).joinToString("=")
+ 
+     companion object {
+-        fun fromSettings(data: String) =
+-            data.split("=").takeIf { it.size == 2 }
+-                ?.run { UserGame(first(), last().toInt()) }
+-                ?: UserGame(data)
++        fun cpuProfileForMode(mode: Int): Int = when (mode) {
++            GameManager.GAME_MODE_BATTERY -> PERFORMANCE_MODE_ECO
++            GameManager.GAME_MODE_PERFORMANCE -> PERFORMANCE_MODE_BOOST
++            else -> PERFORMANCE_MODE_BALANCE
++        }
++
++        const val PERFORMANCE_MODE_ECO = 100
++        const val PERFORMANCE_MODE_BALANCE = 200
++        const val PERFORMANCE_MODE_BOOST = 300
++        // Legacy "Beyond" becomes ordinary Performance; never pin minimum clocks.
++        const val PERFORMANCE_MODE_BEYOND = 400
++
++        fun fromSettings(data: String): UserGame {
++            val fields = data.split("=")
++            val packageName = fields.firstOrNull().orEmpty()
++            if (packageName.isEmpty()) return UserGame(data)
++
++            val mode = fields.getOrNull(1)?.toIntOrNull()
++                ?: GameManager.GAME_MODE_STANDARD
++            return UserGame(
++                packageName = packageName,
++                mode = mode,
++                performanceMode = cpuProfileForMode(mode),
++                force120Hz = fields.getOrNull(3) == "1",
++                highTouchPolling = fields.getOrNull(4) == "1",
++            )
++        }
+     }
+ }
+diff --git a/app/src/main/java/com/android/axion/gamespace/gamebar/SessionService.kt b/app/src/main/java/com/android/axion/gamespace/gamebar/SessionService.kt
+index 7fce45eabbbd9a014640f7d86326a62def498afb..4f12c700edbda64370fdb92c728fd8139bf5217e 100644
+--- a/app/src/main/java/com/android/axion/gamespace/gamebar/SessionService.kt
++++ b/app/src/main/java/com/android/axion/gamespace/gamebar/SessionService.kt
+@@ -36,12 +36,14 @@ import com.google.gson.Gson
+ import com.android.axion.gamespace.data.AppSettings
+ import com.android.axion.gamespace.data.GameSession
+ import com.android.axion.gamespace.data.SystemSettings
++import com.android.axion.gamespace.data.UserGame
+ import com.android.axion.gamespace.gamebar.brightness.BrightnessInteractor
+ import com.android.axion.gamespace.gamebar.fps.FpsInteractor
+ import com.android.axion.gamespace.gamebar.mapper.MapperController
+ import com.android.axion.gamespace.gamebar.tiles.TileRepository
+ import com.android.axion.gamespace.gamebar.tiles.ToggleableTile
+ import com.android.axion.gamespace.utils.GameModeUtils
++import com.android.axion.gamespace.utils.HighTouchPollingController
+ import com.android.axion.gamespace.utils.ScreenUtils
+ import javax.inject.Inject
+ 
+@@ -52,6 +54,7 @@ class SessionService : Hilt_SessionService() {
+     @Inject lateinit var session: GameSession
+     @Inject lateinit var screenUtils: ScreenUtils
+     @Inject lateinit var gameModeUtils: GameModeUtils
++    @Inject lateinit var highTouchPollingController: HighTouchPollingController
+     @Inject lateinit var callListener: CallListener
+     @Inject lateinit var danmakuService: DanmakuService
+     @Inject lateinit var brightnessInteractor: BrightnessInteractor
+@@ -147,14 +150,17 @@ class SessionService : Hilt_SessionService() {
+     }
+ 
+     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+-        if (intent?.action == ACTION_START) {
+-            val packageName = intent.getStringExtra(EXTRA_PACKAGE_NAME)
+-            if (packageName != null) {
+-                startGameSession(packageName)
+-            } else {
+-                Log.e(TAG, "No package name provided, stopping")
+-                stopSelf()
++        when (intent?.action) {
++            ACTION_START -> {
++                val packageName = intent.getStringExtra(EXTRA_PACKAGE_NAME)
++                if (packageName != null) {
++                    startGameSession(packageName)
++                } else {
++                    Log.e(TAG, "No package name provided, stopping")
++                    stopSelf()
++                }
+             }
++            ACTION_STOP -> stopSelf()
+         }
+         return START_NOT_STICKY
+     }
+@@ -177,8 +183,13 @@ class SessionService : Hilt_SessionService() {
+         Log.i(TAG, "Starting game session for $packageName")
+         currentPackage = packageName
+         
++        val userGame = settings.userGames.firstOrNull { it.packageName == packageName }
++            ?: UserGame(packageName)
++
+         session.unregister()
+-        session.register(packageName)
++        session.register(userGame)
++        settings.setPerformanceMode(packageName, UserGame.cpuProfileForMode(userGame.mode))
++        highTouchPollingController.setEnabled(userGame.highTouchPolling)
+         
+         applyGameModeConfig(packageName)
+         
+@@ -216,6 +227,7 @@ class SessionService : Hilt_SessionService() {
+         callListener.destroy()
+         fpsInteractor.dispose()
+         restoreAutoDnd()
++        highTouchPollingController.setEnabled(false)
+ 
+         currentPackage = null
+     }
+@@ -265,6 +277,7 @@ class SessionService : Hilt_SessionService() {
+     companion object {
+         const val TAG = "SessionService"
+         const val ACTION_START = "game_start"
++        const val ACTION_STOP = "game_stop"
+         const val EXTRA_PACKAGE_NAME = "package_name"
+     }
+ }
+diff --git a/app/src/main/java/com/android/axion/gamespace/gamebar/mapper/KeyInputMonitor.kt b/app/src/main/java/com/android/axion/gamespace/gamebar/mapper/KeyInputMonitor.kt
+index 7b59a4f5d89e2ab5cabe540dc743186f3fa3389b..3d52670079f0a70605d7fc5115c53229fd4ca0ec 100644
+--- a/app/src/main/java/com/android/axion/gamespace/gamebar/mapper/KeyInputMonitor.kt
++++ b/app/src/main/java/com/android/axion/gamespace/gamebar/mapper/KeyInputMonitor.kt
+@@ -16,6 +16,7 @@
+ package com.android.axion.gamespace.gamebar.mapper
+ 
+ import android.hardware.input.InputManager
++import android.util.Log
+ import android.os.Looper
+ import android.view.Display
+ import android.view.InputEvent
+@@ -25,6 +26,7 @@ import android.view.KeyEvent
+ 
+ class KeyInputMonitor(
+     private val inputManager: InputManager,
++    private val receiveAllInput: Boolean = false,
+     private val onKeyEvent: (KeyEvent) -> Unit,
+ ) {
+     private var monitor: InputMonitor? = null
+@@ -32,7 +34,22 @@ class KeyInputMonitor(
+ 
+     fun start() {
+         if (monitor != null) return
+-        val mon = inputManager.monitorGestureInput(MONITOR_NAME, Display.DEFAULT_DISPLAY)
++        val mon = if (receiveAllInput) {
++            runCatching {
++                // The full input monitor observes KEY_RED and KEY_GREEN;
++                // gesture monitoring is primarily for touchscreen input.
++                val method = InputManager::class.java.getDeclaredMethod(
++                    "monitorInput", String::class.java, Int::class.javaPrimitiveType,
++                )
++                method.isAccessible = true
++                method.invoke(inputManager, MONITOR_NAME, Display.DEFAULT_DISPLAY) as InputMonitor
++            }.getOrElse {
++                Log.w(MONITOR_NAME, "monitorInput unavailable; using gesture monitor", it)
++                inputManager.monitorGestureInput(MONITOR_NAME, Display.DEFAULT_DISPLAY)
++            }
++        } else {
++            inputManager.monitorGestureInput(MONITOR_NAME, Display.DEFAULT_DISPLAY)
++        }
+         monitor = mon
+ 
+         receiver = object : InputEventReceiver(mon.inputChannel, Looper.getMainLooper()) {
+diff --git a/app/src/main/java/com/android/axion/gamespace/settings/SettingsActivity.kt b/app/src/main/java/com/android/axion/gamespace/settings/SettingsActivity.kt
+index 8fc5f6bbb045a1758e96a252478f7616d28df87d..057fa46fecafae17a9ac440d6982e2841fecc8a9 100644
+--- a/app/src/main/java/com/android/axion/gamespace/settings/SettingsActivity.kt
++++ b/app/src/main/java/com/android/axion/gamespace/settings/SettingsActivity.kt
+@@ -17,6 +17,10 @@
+  */
+ package com.android.axion.gamespace.settings
+ 
++import android.content.BroadcastReceiver
++import android.content.Context
++import android.content.Intent
++import android.content.IntentFilter
+ import android.os.Bundle
+ import android.view.WindowInsetsController
+ import androidx.activity.ComponentActivity
+@@ -34,8 +38,19 @@ class SettingsActivity : Hilt_SettingsActivity() {
+ 
+     private val viewModel: SettingsViewModel by viewModels()
+ 
++    private val sliderReceiver = object : BroadcastReceiver() {
++        override fun onReceive(context: Context?, intent: Intent?) {
++            if (intent?.action == ACTION_CLOSE_FROM_SLIDER) finishAndRemoveTask()
++        }
++    }
++
+     override fun onCreate(savedInstanceState: Bundle?) {
+         super.onCreate(savedInstanceState)
++        registerReceiver(
++            sliderReceiver,
++            IntentFilter(ACTION_CLOSE_FROM_SLIDER),
++            Context.RECEIVER_NOT_EXPORTED,
++        )
+         enableEdgeToEdge()
+         hideSystemBars()
+ 
+@@ -62,5 +77,16 @@ class SettingsActivity : Hilt_SettingsActivity() {
+         super.onResume()
+         hideSystemBars()
+         viewModel.loadRegisteredGames()
++        viewModel.reloadSystemDisplaySettings()
++    }
++
++    override fun onDestroy() {
++        unregisterReceiver(sliderReceiver)
++        super.onDestroy()
++    }
++
++    companion object {
++        const val ACTION_CLOSE_FROM_SLIDER =
++            "com.android.axion.gamespace.action.CLOSE_FROM_SLIDER"
+     }
+ }
+diff --git a/app/src/main/java/com/android/axion/gamespace/ui/screens/GameHubScreen.kt b/app/src/main/java/com/android/axion/gamespace/ui/screens/GameHubScreen.kt
+index 87a666f30909e1cd4d56997857858fdcf362a1d0..56b2989e9e8a7c44481861ef11ff11b6937b2dd8 100644
+--- a/app/src/main/java/com/android/axion/gamespace/ui/screens/GameHubScreen.kt
++++ b/app/src/main/java/com/android/axion/gamespace/ui/screens/GameHubScreen.kt
+@@ -102,6 +102,7 @@ import androidx.compose.ui.res.stringResource
+ import androidx.compose.ui.text.font.FontWeight
+ import androidx.compose.ui.unit.dp
+ import com.android.axion.gamespace.R
++import com.android.axion.gamespace.gamebar.SessionService
+ import com.android.axion.gamespace.ui.components.AddGameTile
+ import com.android.axion.gamespace.ui.components.FeaturedGameCard
+ import com.android.axion.gamespace.ui.components.GameTile
+@@ -332,6 +333,11 @@ private fun GameLibraryPanel(
+                 onViewDetails = onViewDetails,
+                 onLaunchGame = {
+                     context.packageManager.getLaunchIntentForPackage(game.packageName)?.let { intent ->
++                        context.startService(
++                            Intent(context, SessionService::class.java)
++                                .setAction(SessionService.ACTION_START)
++                                .putExtra(SessionService.EXTRA_PACKAGE_NAME, game.packageName)
++                        )
+                         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                         context.startActivity(intent)
+                     }
+@@ -438,6 +444,13 @@ private fun GameDetailsPanel(
+     onRemoveGame: () -> Unit,
+ ) {
+     var selectedMode by remember(game.packageName) { mutableStateOf(game.mode) }
++    val initialUserGame = remember(game.packageName) { viewModel.getUserGame(game.packageName) }
++    var force120Hz by remember(game.packageName) {
++        mutableStateOf(initialUserGame.force120Hz)
++    }
++    var highTouchPolling by remember(game.packageName) {
++        mutableStateOf(initialUserGame.highTouchPolling)
++    }
+     var angleChoice by remember(game.packageName) {
+         mutableStateOf(viewModel.getAngleDriverChoice(game.packageName))
+     }
+@@ -497,6 +510,24 @@ private fun GameDetailsPanel(
+                     },
+                 )
+ 
++                HubToggle(
++                    label = stringResource(R.string.force_120hz_title),
++                    checked = force120Hz,
++                    onCheckedChange = { enabled ->
++                        force120Hz = enabled
++                        viewModel.updateForce120Hz(game.packageName, enabled)
++                    },
++                )
++
++                HubToggle(
++                    label = stringResource(R.string.high_touch_polling_title),
++                    checked = highTouchPolling,
++                    onCheckedChange = { enabled ->
++                        highTouchPolling = enabled
++                        viewModel.updateHighTouchPolling(game.packageName, enabled)
++                    },
++                )
++
+                 if (viewModel.angleFeatureAvailable) {
+                     Spacer(modifier = Modifier.height(8.dp))
+                     HubSectionLabel(stringResource(R.string.graphics))
+@@ -617,6 +648,11 @@ private fun GlobalSettingsPanel(
+                         .verticalScroll(rememberScrollState()),
+                     verticalArrangement = Arrangement.spacedBy(4.dp),
+                 ) {
++                    HubToggle(
++                        label = stringResource(R.string.high_refresh_rate_title),
++                        checked = viewModel.highRefreshRateEnabled,
++                        onCheckedChange = { viewModel.updateHighRefreshRate(it) },
++                    )
+                     HubToggle(
+                         label = stringResource(R.string.auto_brightness_disabled_title),
+                         checked = viewModel.noAutoBrightness,
+diff --git a/app/src/main/java/com/android/axion/gamespace/ui/screens/PerAppSettingsScreen.kt b/app/src/main/java/com/android/axion/gamespace/ui/screens/PerAppSettingsScreen.kt
+index a9149460036e7b49ec2b93731a25e286a80d3b4b..086a08f7fd5d898fcc468956eaba8843276d4128 100644
+--- a/app/src/main/java/com/android/axion/gamespace/ui/screens/PerAppSettingsScreen.kt
++++ b/app/src/main/java/com/android/axion/gamespace/ui/screens/PerAppSettingsScreen.kt
+@@ -125,6 +125,24 @@ fun PerAppSettingsScreen(
+                 )
+             }
+ 
++            SettingsSection(title = stringResource(R.string.performance_tuning)) {
++                SettingsSwitch(
++                    title = stringResource(R.string.force_120hz_title),
++                    summary = stringResource(R.string.force_120hz_summary),
++                    checked = viewModel.force120Hz,
++                    onCheckedChange = { viewModel.updateForce120Hz(it) },
++                    icon = painterResource(R.drawable.ic_fps)
++                )
++
++                SettingsSwitch(
++                    title = stringResource(R.string.high_touch_polling_title),
++                    summary = stringResource(R.string.high_touch_polling_summary),
++                    checked = viewModel.highTouchPolling,
++                    onCheckedChange = { viewModel.updateHighTouchPolling(it) },
++                    icon = painterResource(R.drawable.materialsymbols_ic_gesture_rounded_filled)
++                )
++            }
++
+             if (viewModel.angleFeatureAvailable) {
+                 SettingsSection(title = stringResource(R.string.graphics)) {
+                     SettingsDropdown(
+diff --git a/app/src/main/java/com/android/axion/gamespace/ui/screens/SettingsScreen.kt b/app/src/main/java/com/android/axion/gamespace/ui/screens/SettingsScreen.kt
+index 630f9f30bd3771228f2800a60c6f625aff9dff8f..e601e4d92db262d3e44866f1a0665614efb746ea 100644
+--- a/app/src/main/java/com/android/axion/gamespace/ui/screens/SettingsScreen.kt
++++ b/app/src/main/java/com/android/axion/gamespace/ui/screens/SettingsScreen.kt
+@@ -194,6 +194,14 @@ fun SettingsScreen(
+             item {
+                 Spacer(modifier = Modifier.height(16.dp))
+                 SettingsSection(title = stringResource(R.string.display_gestures)) {
++                    SettingsSwitch(
++                        title = stringResource(R.string.high_refresh_rate_title),
++                        summary = stringResource(R.string.high_refresh_rate_summary),
++                        checked = viewModel.highRefreshRateEnabled,
++                        onCheckedChange = { viewModel.updateHighRefreshRate(it) },
++                        icon = painterResource(R.drawable.materialsymbols_ic_speed_rounded_filled)
++                    )
++
+                     SettingsSwitch(
+                         title = stringResource(R.string.auto_brightness_disabled_title),
+                         summary = stringResource(R.string.auto_brightness_disabled_summary),
+diff --git a/app/src/main/java/com/android/axion/gamespace/ui/viewmodel/PerAppSettingsViewModel.kt b/app/src/main/java/com/android/axion/gamespace/ui/viewmodel/PerAppSettingsViewModel.kt
+index 07da53a7e54be24f251c44a2366a2347bf96514b..f735b5a926d70f0fa1c1b8bec6e3a9197390e60f 100644
+--- a/app/src/main/java/com/android/axion/gamespace/ui/viewmodel/PerAppSettingsViewModel.kt
++++ b/app/src/main/java/com/android/axion/gamespace/ui/viewmodel/PerAppSettingsViewModel.kt
+@@ -46,6 +46,12 @@ class PerAppSettingsViewModel @Inject constructor(
+     var preferredMode by mutableIntStateOf(1)
+         private set
+ 
++    var force120Hz by mutableStateOf(false)
++        private set
++
++    var highTouchPolling by mutableStateOf(false)
++        private set
++
+     var angleDriverChoice by mutableStateOf(GameModeUtils.DRIVER_CHOICE_DEFAULT)
+         private set
+ 
+@@ -53,9 +59,9 @@ class PerAppSettingsViewModel @Inject constructor(
+         private set
+ 
+     val gameModeOptions = listOf(
+-        1 to "Standard",
+-        2 to "Performance",
+-        3 to "Battery"
++        1 to context.getString(R.string.game_mode_standard_cpu),
++        2 to context.getString(R.string.game_mode_performance_cpu),
++        3 to context.getString(R.string.game_mode_battery_cpu)
+     )
+ 
+     fun loadGame(pkg: String) {
+@@ -74,6 +80,8 @@ class PerAppSettingsViewModel @Inject constructor(
+ 
+         val userGame = systemSettings.userGames.firstOrNull { it.packageName == pkg }
+         preferredMode = userGame?.mode ?: 1
++        force120Hz = userGame?.force120Hz ?: false
++        highTouchPolling = userGame?.highTouchPolling ?: false
+ 
+         val hasAngle = gameModeUtils.findAnglePackage()?.isEnabled == true
+         val hasVulkan = gameModeUtils.isVulkanSupported()
+@@ -86,6 +94,25 @@ class PerAppSettingsViewModel @Inject constructor(
+         gameModeUtils.setGameModeFor(packageName, systemSettings, mode)
+     }
+ 
++    fun updateForce120Hz(enabled: Boolean) {
++        force120Hz = enabled
++        updateUserGame { it.copy(force120Hz = enabled) }
++    }
++
++    fun updateHighTouchPolling(enabled: Boolean) {
++        highTouchPolling = enabled
++        updateUserGame { it.copy(highTouchPolling = enabled) }
++    }
++
++    private fun updateUserGame(transform: (UserGame) -> UserGame) {
++        if (packageName.isEmpty()) return
++        val games = systemSettings.userGames.toMutableList()
++        val index = games.indexOfFirst { it.packageName == packageName }
++        val current = games.getOrNull(index) ?: UserGame(packageName)
++        if (index >= 0) games[index] = transform(current) else games.add(transform(current))
++        systemSettings.userGames = games
++    }
++
+     val angleDriverOptions = listOf(
+         GameModeUtils.DRIVER_CHOICE_DEFAULT to "Default",
+         GameModeUtils.DRIVER_CHOICE_ANGLE to "ANGLE",
+@@ -99,6 +126,7 @@ class PerAppSettingsViewModel @Inject constructor(
+ 
+     fun unregisterGame() {
+         gameModeUtils.setAngleDriverChoice(packageName, GameModeUtils.DRIVER_CHOICE_DEFAULT)
++        systemSettings.removePerformanceMode(packageName)
+         val games = systemSettings.userGames.toMutableList()
+         games.removeIf { it.packageName == packageName }
+         systemSettings.userGames = games
+diff --git a/app/src/main/java/com/android/axion/gamespace/ui/viewmodel/SettingsViewModel.kt b/app/src/main/java/com/android/axion/gamespace/ui/viewmodel/SettingsViewModel.kt
+index 1909e240fce637ea45e906d3e4fcc941687c3ff1..ef4f4be6cd960bc6ee0357d1c31618ca5bea0540 100644
+--- a/app/src/main/java/com/android/axion/gamespace/ui/viewmodel/SettingsViewModel.kt
++++ b/app/src/main/java/com/android/axion/gamespace/ui/viewmodel/SettingsViewModel.kt
+@@ -55,6 +55,9 @@ class SettingsViewModel @Inject constructor(
+     var stayAwake by mutableStateOf(systemSettings.stayAwake)
+         private set
+ 
++    var highRefreshRateEnabled by mutableStateOf(systemSettings.highRefreshRateEnabled)
++        private set
++
+     var menuOpacity by mutableFloatStateOf(appSettings.menuOpacity.toFloat())
+         private set
+ 
+@@ -171,6 +174,15 @@ class SettingsViewModel @Inject constructor(
+         systemSettings.stayAwake = enabled
+     }
+ 
++    fun updateHighRefreshRate(enabled: Boolean) {
++        highRefreshRateEnabled = enabled
++        systemSettings.highRefreshRateEnabled = enabled
++    }
++
++    fun reloadSystemDisplaySettings() {
++        highRefreshRateEnabled = systemSettings.highRefreshRateEnabled
++    }
++
+     fun updateMenuOpacity(opacity: Float) {
+         menuOpacity = opacity
+         appSettings.menuOpacity = opacity.toInt()
+@@ -225,14 +237,17 @@ class SettingsViewModel @Inject constructor(
+     fun registerGame(packageName: String) {
+         val games = systemSettings.userGames.toMutableList()
+         if (!games.any { it.packageName == packageName }) {
+-            games.add(UserGame(packageName))
++            val game = UserGame(packageName)
++            games.add(game)
+             systemSettings.userGames = games
++            systemSettings.setPerformanceMode(packageName, UserGame.cpuProfileForMode(game.mode))
+         }
+         loadRegisteredGames()
+     }
+ 
+     fun unregisterGame(packageName: String) {
+         gameModeUtils.setAngleDriverChoice(packageName, GameModeUtils.DRIVER_CHOICE_DEFAULT)
++        systemSettings.removePerformanceMode(packageName)
+         val games = systemSettings.userGames.toMutableList()
+         games.removeIf { it.packageName == packageName }
+         systemSettings.userGames = games
+@@ -244,7 +259,32 @@ class SettingsViewModel @Inject constructor(
+         loadRegisteredGames()
+     }
+ 
+-    val gameModeOptions = listOf(1 to "Standard", 2 to "Performance", 3 to "Battery")
++    fun getUserGame(packageName: String): UserGame =
++        systemSettings.userGames.firstOrNull { it.packageName == packageName }
++            ?: UserGame(packageName)
++
++    fun updateForce120Hz(packageName: String, enabled: Boolean) {
++        updateUserGame(packageName) { it.copy(force120Hz = enabled) }
++    }
++
++    fun updateHighTouchPolling(packageName: String, enabled: Boolean) {
++        updateUserGame(packageName) { it.copy(highTouchPolling = enabled) }
++    }
++
++    private fun updateUserGame(packageName: String, transform: (UserGame) -> UserGame) {
++        val games = systemSettings.userGames.toMutableList()
++        val index = games.indexOfFirst { it.packageName == packageName }
++        val current = games.getOrNull(index) ?: UserGame(packageName)
++        if (index >= 0) games[index] = transform(current) else games.add(transform(current))
++        systemSettings.userGames = games
++        loadRegisteredGames()
++    }
++
++    val gameModeOptions = listOf(
++        1 to context.getString(com.android.axion.gamespace.R.string.game_mode_standard_cpu),
++        2 to context.getString(com.android.axion.gamespace.R.string.game_mode_performance_cpu),
++        3 to context.getString(com.android.axion.gamespace.R.string.game_mode_battery_cpu),
++    )
+ 
+     val angleFeatureAvailable: Boolean
+         get() = gameModeUtils.findAnglePackage()?.isEnabled == true && gameModeUtils.isVulkanSupported()
+diff --git a/app/src/main/java/com/android/axion/gamespace/utils/GameModeUtils.kt b/app/src/main/java/com/android/axion/gamespace/utils/GameModeUtils.kt
+index 7b3e505aa7bcea48736ea80b2c3184f5c5845b02..8d95a409b414cd07a5b9c40f5ed374f0b947f26f 100644
+--- a/app/src/main/java/com/android/axion/gamespace/utils/GameModeUtils.kt
++++ b/app/src/main/java/com/android/axion/gamespace/utils/GameModeUtils.kt
+@@ -63,11 +63,15 @@ class GameModeUtils @Inject constructor(private val context: Context) {
+     }
+ 
+     fun setGameModeFor(packageName: String, systemSettings: SystemSettings, mode: Int): UserGame {
+-        val data = UserGame(packageName, mode)
++        val data = systemSettings.userGames
++            .firstOrNull { it.packageName == packageName }
++            ?.copy(mode = mode)
++            ?: UserGame(packageName, mode)
+         systemSettings.userGames = systemSettings.userGames
+             .filter { x -> x.packageName != packageName }
+             .toMutableList()
+             .apply { add(data) }
++        systemSettings.setPerformanceMode(packageName, UserGame.cpuProfileForMode(mode))
+ 
+         return data
+     }
+diff --git a/app/src/main/privapp_whitelist_com.android.axion.gamespace.xml b/app/src/main/privapp_whitelist_com.android.axion.gamespace.xml
+index 2c386aa874c57abeab6b7bf587667a6ac079829f..61d38fc08e1559ee64c1dd7abb6c47547abc32b1 100644
+--- a/app/src/main/privapp_whitelist_com.android.axion.gamespace.xml
++++ b/app/src/main/privapp_whitelist_com.android.axion.gamespace.xml
+@@ -36,5 +36,7 @@
+         <permission name="android.permission.BLUETOOTH" />
+         <permission name="android.permission.BLUETOOTH_ADMIN" />
+         <permission name="android.permission.MODIFY_PHONE_STATE" />
++        <permission name="android.permission.INJECT_EVENTS" />
++        <permission name="android.permission.MONITOR_INPUT" />
+     </privapp-permissions>
+ </permissions>
+diff --git a/app/src/main/res/values-ru/strings.xml b/app/src/main/res/values-ru/strings.xml
+index b934617c12197713a9baef64316ed7acb70fecfc..a898a622b50b6bf1caef934403c54f3553f73e9b 100644
+--- a/app/src/main/res/values-ru/strings.xml
++++ b/app/src/main/res/values-ru/strings.xml
+@@ -219,4 +219,21 @@
+     <string name="music_player_enabled_summary">Show global media playback controls inside the floating sidebar</string>
+     <string name="no_music_playing">No Music Playing</string>
+     <string name="tap_to_play">Tap to start playing</string>
++
++    <!-- Аппаратные и игровые настройки Tiro -->
++    <string name="high_refresh_rate_title">Высокая частота обновления</string>
++    <string name="high_refresh_rate_summary">Использует то же значение пиковой частоты, что и настройки экрана</string>
++    <string name="performance_tuning">Настройка производительности</string>
++    <string name="performance_profile_title">Профиль производительности</string>
++    <string name="performance_profile_eco">Батарея (до 30% CPU)</string>
++    <string name="performance_profile_balance">Стандарт (до 70% CPU)</string>
++    <string name="performance_profile_boost">Производительность (до 100% CPU)</string>
++    <string name="performance_profile_beyond">За пределами</string>
++    <string name="force_120hz_title">Принудительно 120 Гц в этой игре</string>
++    <string name="force_120hz_summary">На время игры устанавливает минимальную и пиковую частоту 120 Гц, затем восстанавливает настройки экрана</string>
++    <string name="high_touch_polling_title">Высокая частота опроса сенсора</string>
++    <string name="high_touch_polling_summary">Включает ускоренный опрос сенсора Goodix только во время этой игры</string>
++    <string name="game_mode_standard_cpu">Стандарт · CPU до 70%</string>
++    <string name="game_mode_performance_cpu">Производительность · CPU до 100%</string>
++    <string name="game_mode_battery_cpu">Батарея · CPU до 30%</string>
+ </resources>
+diff --git a/app/src/main/res/values/strings.xml b/app/src/main/res/values/strings.xml
+index 5273c915a8324a4dd5f7a106803208128964df3b..36f49ca61fcdf4d8c6af97c20c9edc04e5f308e7 100644
+--- a/app/src/main/res/values/strings.xml
++++ b/app/src/main/res/values/strings.xml
+@@ -249,4 +249,21 @@
+      <string name="music_player_enabled_summary">Show global media playback controls inside the floating sidebar</string>
+      <string name="no_music_playing">No Music Playing</string>
+      <string name="tap_to_play">Tap to start playing</string>
++
++     <!-- Tiro game hardware and performance -->
++     <string name="high_refresh_rate_title">High refresh rate</string>
++     <string name="high_refresh_rate_summary">Uses the same peak refresh-rate setting as Display settings</string>
++     <string name="performance_tuning">Performance tuning</string>
++     <string name="performance_profile_title">Performance profile</string>
++     <string name="performance_profile_eco">Battery (30% CPU max)</string>
++     <string name="performance_profile_balance">Standard (70% CPU max)</string>
++     <string name="performance_profile_boost">Performance (100% CPU max)</string>
++     <string name="performance_profile_beyond">Beyond</string>
++     <string name="force_120hz_title">Force 120 Hz for this game</string>
++     <string name="force_120hz_summary">Sets both minimum and peak refresh rate to 120 Hz while playing, then restores the Display settings</string>
++     <string name="high_touch_polling_title">High touch polling rate</string>
++     <string name="high_touch_polling_summary">Enables the Goodix high polling-rate mode only while this game is active</string>
++    <string name="game_mode_standard_cpu">Standard · CPU max 70%</string>
++    <string name="game_mode_performance_cpu">Performance · CPU max 100%</string>
++    <string name="game_mode_battery_cpu">Battery · CPU max 30%</string>
+ </resources>

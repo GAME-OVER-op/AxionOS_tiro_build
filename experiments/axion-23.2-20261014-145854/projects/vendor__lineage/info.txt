@@ -1,0 +1,17 @@
+REPO_PATH=vendor/lineage
+HEAD=1541c879b3182973b2d1181748727ac2d17aeaf0
+
+===== REMOTES =====
+axion	https://github.com/AxionAOSP/android_vendor_lineage (fetch)
+axion	https://github.com/AxionAOSP/android_vendor_lineage (push)
+
+===== BRANCHES =====
+* (no branch)                1541c879 release: Bump Security String to 2026-10-01
+  remotes/axion/lineage-23.2 1541c879 release: Bump Security String to 2026-10-01
+  remotes/m/lineage-23.2     -> axion/lineage-23.2
+
+===== STATUS =====
+ M build/tasks/kernel.mk
+
+===== LOCAL-ONLY COMMITS =====
+

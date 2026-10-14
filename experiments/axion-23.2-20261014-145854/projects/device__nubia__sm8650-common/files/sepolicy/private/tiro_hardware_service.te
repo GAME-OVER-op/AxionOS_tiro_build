@@ -1,0 +1,34 @@
+type tiro_hardware_service, domain, coredomain;
+init_daemon_domain(tiro_hardware_service)
+
+# Runtime configuration and heartbeat written by NubiaParts.
+allow tiro_hardware_service tiro_hardware_data_file:dir r_dir_perms;
+allow tiro_hardware_service tiro_hardware_data_file:file r_file_perms;
+allow tiro_hardware_service system_data_file:dir search;
+
+# Cooling fan and physical shoulder-trigger modes.
+allow tiro_hardware_service sysfs_fan:dir search;
+allow tiro_hardware_service sysfs_fan:file rw_file_perms;
+allow tiro_hardware_service proc_touchkey:file rw_file_perms;
+
+# AW22xxx external/fan RGB controller. The generic class link is traversed,
+# while the device-specific node receives the narrower writable label.
+allow tiro_hardware_service sysfs_leds:lnk_file read;
+allow tiro_hardware_service sysfs_tiro_rgb:dir r_dir_perms;
+allow tiro_hardware_service sysfs_tiro_rgb:file rw_file_perms;
+
+# Automatic fan curve. Input capabilities and ranges are queried directly from
+# /dev/input with EVIOCG* ioctls, so generic sysfs access is intentionally absent.
+r_dir_file(tiro_hardware_service, sysfs_thermal)
+allow tiro_hardware_service sysfs_thermal:lnk_file read;
+
+# Grab the real touchscreen, read hardware triggers and publish their merged
+# stream through /dev/uinput.
+allow tiro_hardware_service input_device:dir r_dir_perms;
+allow tiro_hardware_service input_device:chr_file rw_file_perms;
+allow tiro_hardware_service uhid_device:chr_file rw_file_perms;
+
+# CPU frequency caps use the pre-existing system CPU label; do not relabel
+# the cpufreq subtree because Qualcomm Power HAL also accesses it.
+allow tiro_hardware_service sysfs_devices_system_cpu:dir r_dir_perms;
+allow tiro_hardware_service sysfs_devices_system_cpu:file rw_file_perms;

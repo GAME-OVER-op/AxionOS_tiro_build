@@ -1,0 +1,24 @@
+diff --git a/Android.mk b/Android.mk
+index e8662f6d248a3963fc3bba512a9746ed58bc828b..5cad2eabd18fa8b1e3baded46a0331ea762338e0 100644
+--- a/Android.mk
++++ b/Android.mk
+@@ -6,6 +6,7 @@ LOCAL_PATH := $(call my-dir)
+ 
+ ifeq ($(TARGET_DEVICE),tiro)
+ 
++$(call add-radio-file-sha1-checked,radio/abl.img,f40f9f492fc03a31b5ce85bfa134c387c185642a)
+ $(call add-radio-file-sha1-checked,radio/aop.img,56980ec3323ad8048d9f4a320c8e510d01ac7e37)
+ $(call add-radio-file-sha1-checked,radio/aop_config.img,64dc30d0dbdfa5bdfe507f72961ab8710378cbb7)
+ $(call add-radio-file-sha1-checked,radio/bluetooth.img,914f579ac3b998dc759851a015e00d54729aed79)
+diff --git a/BoardConfigVendor.mk b/BoardConfigVendor.mk
+index 4a954a2aab511048e4d86cc62d242b6a08c28aba..6ccb897c028f188fc4383046e033d359610f4b6e 100644
+--- a/BoardConfigVendor.mk
++++ b/BoardConfigVendor.mk
+@@ -3,6 +3,7 @@
+ #
+ 
+ AB_OTA_PARTITIONS += \
++    abl \
+     aop \
+     aop_config \
+     bluetooth \

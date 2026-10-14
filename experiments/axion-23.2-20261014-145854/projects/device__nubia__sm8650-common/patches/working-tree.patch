@@ -1,0 +1,665 @@
+diff --git a/parts/AndroidManifest.xml b/parts/AndroidManifest.xml
+index cc70d6955c6cf866a6172f2d75ecccd0ec45ef57..d8d132fc5c33d440075b688a316c5e196ffd5f8a 100644
+--- a/parts/AndroidManifest.xml
++++ b/parts/AndroidManifest.xml
+@@ -10,10 +10,14 @@
+     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+     <uses-permission android:name="android.permission.WAKE_LOCK" />
+     <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS" />
++    <uses-permission android:name="android.permission.REAL_GET_TASKS" />
++    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
++    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+ 
+     <application
+         android:icon="@mipmap/ic_launcher"
+         android:label="@string/device_settings_app_name"
++        android:directBootAware="true"
+         android:persistent="true"
+         android:theme="@style/Theme.SubSettingsBase.Expressive">
+ 
+@@ -21,6 +25,7 @@
+             android:name=".BootReceiver"
+             android:exported="false">
+             <intent-filter>
++                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
+                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+                 <category android:name="android.intent.category.DEFAULT" />
+             </intent-filter>
+@@ -76,6 +81,62 @@
+             </intent-filter>
+         </activity>
+ 
++        <activity
++            android:name=".trigger.TriggerAppsActivity"
++            android:exported="false" />
++
++        <activity
++            android:name=".trigger.TriggerAppActivity"
++            android:exported="false" />
++
++        <activity
++            android:name=".trigger.TriggerCalibrationActivity"
++            android:configChanges="density|fontScale|keyboardHidden|orientation|screenLayout|screenSize|smallestScreenSize|uiMode"
++            android:excludeFromRecents="true"
++            android:exported="false"
++            android:finishOnTaskLaunch="true"
++            android:screenOrientation="behind"
++            android:theme="@style/Theme.NubiaParts.Calibration" />
++
++        <activity
++            android:name=".lighting.LightingActivity"
++            android:label="@string/lighting_title"
++            android:exported="true">
++            <intent-filter>
++                <action android:name="org.lineageos.settings.LIGHTING_SETTINGS" />
++                <category android:name="android.intent.category.DEFAULT" />
++            </intent-filter>
++        </activity>
++
++        <activity
++            android:name=".hbm.HbmActivity"
++            android:label="@string/hbm_title"
++            android:exported="true">
++            <intent-filter>
++                <action android:name="org.lineageos.settings.HBM_SETTINGS" />
++                <category android:name="android.intent.category.DEFAULT" />
++            </intent-filter>
++        </activity>
++
++        <service
++            android:name=".service.HardwareControlService"
++            android:directBootAware="true"
++            android:exported="false" />
++
++        <service
++            android:name=".service.NubiaNotificationListener"
++            android:directBootAware="true"
++            android:exported="true"
++            android:label="@string/notification_listener_label"
++            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
++            <intent-filter>
++                <action android:name="android.service.notification.NotificationListenerService" />
++            </intent-filter>
++            <meta-data
++                android:name="android.service.notification.default_filter_types"
++                android:value="conversations|alerting|silent" />
++        </service>
++
+         <service
+             android:name=".fan.FanTileService"
+             android:exported="true"
+@@ -97,5 +158,16 @@
+                 <action android:name="android.service.quicksettings.action.QS_TILE"/>
+             </intent-filter>
+         </service>
++
++        <service
++            android:name=".hbm.HbmTileService"
++            android:exported="true"
++            android:label="@string/hbm_tile_title"
++            android:icon="@drawable/ic_hbm"
++            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
++            <intent-filter>
++                <action android:name="android.service.quicksettings.action.QS_TILE" />
++            </intent-filter>
++        </service>
+     </application>
+ </manifest>
+diff --git a/parts/proguard.flags b/parts/proguard.flags
+index 3dbac7bca22b1d73fe6756c7b0a6b1d6574d38d9..9e5a39f56f73a9918b9d882ef8bf20bcc27b6e67 100644
+--- a/parts/proguard.flags
++++ b/parts/proguard.flags
+@@ -1,3 +1,3 @@
+--keep class org.lineageos.settings.* {
++-keep class org.lineageos.settings.** {
+   *;
+ }
+diff --git a/parts/res/values/strings.xml b/parts/res/values/strings.xml
+index e0fc721f673a76e54732bf3acba807b3ff10bcdd..80df45d6b3812ca498e3173134818520d0aab839 100644
+--- a/parts/res/values/strings.xml
++++ b/parts/res/values/strings.xml
+@@ -14,10 +14,67 @@
+     <string name="fan_enable_summary">Turn the cooling fan on or off</string>
+     <string name="fan_speed_title">Fan Speed</string>
+     <string name="fan_speed_summary">Adjust fan speed level</string>
++    <string name="fan_mode_title">Fan mode</string>
++    <string name="fan_mode_manual">Manual</string>
++    <string name="fan_mode_auto">Automatic temperature curve</string>
++    <string name="fan_curve_title">Automatic fan curve</string>
++    <string name="fan_curve_summary">Set a temperature threshold for each fan speed</string>
++    <string name="fan_curve_dialog_title">Fan temperature curve</string>
++    <string name="fan_curve_dialog_message">Each level starts at its selected CPU temperature. Thresholds are kept in increasing order.</string>
++    <string name="fan_curve_speed">Speed %1$d</string>
++    <string name="fan_curve_temperature_unit">°C</string>
+ 
+     <!-- Trigger buttons -->
+     <string name="trigger_buttons_title">Trigger buttons</string>
+     <string name="trigger_buttons_summary">Enable or disable trigger buttons</string>
+     <string name="trigger_buttons_enable_title">Enable trigger buttons</string>
+-    <string name="trigger_buttons_enable_summary">Allow trigger buttons to function normally</string>
++    <string name="trigger_buttons_enable_summary">Use shoulder triggers only in configured applications</string>
++    <string name="trigger_selected_apps_title">Configured applications</string>
++    <string name="trigger_choose_apps_title">Choose applications</string>
++    <string name="trigger_choose_apps_summary">Select games and applications that may use shoulder triggers</string>
++    <string name="trigger_apps_list_title">Applications</string>
++    <string name="trigger_no_apps_selected">No applications selected</string>
++    <string name="trigger_app_summary">Left: %1$s · Right: %2$s</string>
++    <string name="trigger_left_title">Left trigger</string>
++    <string name="trigger_right_title">Right trigger</string>
++    <string name="trigger_coordinates_summary">Touch point: %1$d, %2$d</string>
++    <string name="trigger_coordinates_missing">Touch point is not calibrated</string>
++    <string name="trigger_calibrate_title">Calibrate touch points</string>
++    <string name="trigger_calibrate_summary">Launch the application and place the cyan and red markers over its controls</string>
++    <string name="trigger_calibration_hint">Drag L (cyan) and R (red) onto the game controls</string>
++    <string name="trigger_enable_side_first">Enable at least one trigger before calibration</string>
++    <string name="trigger_app_launch_failed">This application cannot be launched</string>
++    <string name="trigger_coordinates_saved">Trigger coordinates saved</string>
++
++    <!-- Lighting -->
++    <string name="lighting_title">RGB lighting</string>
++    <string name="lighting_summary">Configure fan, trigger, and notification lighting</string>
++    <string name="lighting_enable">Enable lighting</string>
++    <string name="lighting_mode">Mode</string>
++    <string name="lighting_effect">Color / effect</string>
++    <string name="lighting_fan_category">Fan lighting</string>
++    <string name="lighting_trigger_category">Trigger lighting</string>
++    <string name="lighting_trigger_summary">Active only while triggers are used in a configured application</string>
++    <string name="lighting_notification_category">Notification lighting</string>
++    <string name="lighting_notification_summary">External lighting is active only while the screen is off</string>
++    <string name="notification_listener_label">Nubia notification lighting</string>
++
++    <!-- High brightness mode -->
++    <string name="hbm_title">High brightness mode</string>
++    <string name="hbm_summary">Automatic or persistent maximum display brightness</string>
++    <string name="hbm_mode_title">HBM mode</string>
++    <string name="hbm_mode_off">Off</string>
++    <string name="hbm_mode_auto">Automatic</string>
++    <string name="hbm_mode_forced">Forced</string>
++    <string name="hbm_lux_on_title">Activation threshold</string>
++    <string name="hbm_lux_on_summary">Ambient light level at which automatic HBM turns on</string>
++    <string name="hbm_lux_off_title">Deactivation threshold</string>
++    <string name="hbm_lux_off_summary">Ambient light level below which automatic HBM turns off</string>
++    <string name="hbm_forced_warning">Forced HBM increases power use and display temperature. It turns off with the screen and is restored immediately after screen-on.</string>
++    <string name="hbm_tile_title">HBM</string>
++
++    <string name="state_enabled">enabled</string>
++    <string name="state_disabled">disabled</string>
++    <string name="action_save">Save</string>
++    <string name="action_cancel">Cancel</string>
+ </resources>
+diff --git a/parts/res/xml/fan_preferences.xml b/parts/res/xml/fan_preferences.xml
+index 624e700ab646afb380eb05e71f27d5a653152a00..101d21a118461089cf80e40ce3759b1a600878f6 100644
+--- a/parts/res/xml/fan_preferences.xml
++++ b/parts/res/xml/fan_preferences.xml
+@@ -17,4 +17,17 @@
+         android:title="@string/fan_speed_title"
+         android:summary="@string/fan_speed_summary"
+         android:defaultValue="3" />
++
++    <ListPreference
++        android:key="fan_mode"
++        android:title="@string/fan_mode_title"
++        android:summary="%s"
++        android:entries="@array/fan_mode_entries"
++        android:entryValues="@array/fan_mode_values"
++        android:defaultValue="manual" />
++
++    <org.lineageos.settings.fan.FanCurvePreference
++        android:key="fan_curve"
++        android:title="@string/fan_curve_title"
++        android:summary="@string/fan_curve_summary" />
+ </PreferenceScreen>
+diff --git a/parts/res/xml/nubia_preferences.xml b/parts/res/xml/nubia_preferences.xml
+index 81912018d286c73f879a107ee5fe87c3b77f1456..5a56e8287f5937d3d58a03bc06b5f9b46c5e17de 100644
+--- a/parts/res/xml/nubia_preferences.xml
++++ b/parts/res/xml/nubia_preferences.xml
+@@ -21,4 +21,13 @@
+         android:title="@string/trigger_buttons_title">
+         <intent android:action="org.lineageos.settings.TRIGGER_SETTINGS" />
+     </Preference>
++
++    <Preference
++        android:key="lighting"
++        android:icon="@drawable/ic_lighting"
++        android:summary="@string/lighting_summary"
++        android:title="@string/lighting_title">
++        <intent android:action="org.lineageos.settings.LIGHTING_SETTINGS" />
++    </Preference>
++
+ </PreferenceScreen>
+diff --git a/parts/res/xml/trigger_preferences.xml b/parts/res/xml/trigger_preferences.xml
+index 1fbbd71092005cf691e4ac4b27f67fab87119af6..a3849cf90cf15269646b21f2c472ce9f984ec88e 100644
+--- a/parts/res/xml/trigger_preferences.xml
++++ b/parts/res/xml/trigger_preferences.xml
+@@ -11,4 +11,13 @@
+         android:title="@string/trigger_buttons_enable_title"
+         android:summary="@string/trigger_buttons_enable_summary"
+         android:defaultValue="false" />
++
++    <PreferenceCategory
++        android:key="trigger_selected_apps"
++        android:title="@string/trigger_selected_apps_title" />
++
++    <Preference
++        android:key="trigger_choose_apps"
++        android:title="@string/trigger_choose_apps_title"
++        android:summary="@string/trigger_choose_apps_summary" />
+ </PreferenceScreen>
+diff --git a/parts/src/org/lineageos/settings/BootReceiver.kt b/parts/src/org/lineageos/settings/BootReceiver.kt
+index 26affd87c7d6fd35f4dc0087d648997051d7ac26..6c6781755b50163039bde777c2f4e5e43248f570 100644
+--- a/parts/src/org/lineageos/settings/BootReceiver.kt
++++ b/parts/src/org/lineageos/settings/BootReceiver.kt
+@@ -9,14 +9,17 @@ import android.content.BroadcastReceiver
+ import android.content.Context
+ import android.content.Intent
+ import org.lineageos.settings.fan.FanController
++import org.lineageos.settings.service.HardwareControlService
+ import org.lineageos.settings.trigger.TriggerController
+ 
+ class BootReceiver : BroadcastReceiver() {
+ 
+     override fun onReceive(context: Context, intent: Intent) {
+-        if (Intent.ACTION_BOOT_COMPLETED == intent.action) {
++        if (Intent.ACTION_BOOT_COMPLETED == intent.action ||
++            Intent.ACTION_LOCKED_BOOT_COMPLETED == intent.action) {
+             FanController.restoreSettings(context)
+             TriggerController.restoreSettings(context)
++            HardwareControlService.requestUpdate(context)
+         }
+     }
+ }
+diff --git a/parts/src/org/lineageos/settings/TileActivity.kt b/parts/src/org/lineageos/settings/TileActivity.kt
+index 50d0f768a9e758ab0da07619f5a2a2a1b6244643..fe4876f9167b32d21917892642c614ffda313374 100644
+--- a/parts/src/org/lineageos/settings/TileActivity.kt
++++ b/parts/src/org/lineageos/settings/TileActivity.kt
+@@ -25,6 +25,10 @@ class TileActivity : Activity() {
+             when (sourceClass?.className) {
+                 "org.lineageos.settings.fan.FanTileService" -> FanActivity::class.java
+                 "org.lineageos.settings.trigger.TriggerTileService" -> TriggerActivity::class.java
++                "org.lineageos.settings.hbm.HbmTileService" -> {
++                    openActivitySafely(Intent("org.lineageos.lineageparts.LIVEDISPLAY_SETTINGS"))
++                    return
++                }
+                 else -> null
+             }
+ 
+@@ -35,7 +39,7 @@ class TileActivity : Activity() {
+         try {
+             startActivity(
+                 dest.apply {
+-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
++                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                 }
+             )
+         } catch (e: ActivityNotFoundException) {
+diff --git a/parts/src/org/lineageos/settings/fan/FanController.kt b/parts/src/org/lineageos/settings/fan/FanController.kt
+index 558611a1d68a505c135aac4b89f3c34c03dd1f16..e0859126672a286f6e3a13a0389e393d20f80547 100644
+--- a/parts/src/org/lineageos/settings/fan/FanController.kt
++++ b/parts/src/org/lineageos/settings/fan/FanController.kt
+@@ -6,12 +6,15 @@
+ package org.lineageos.settings.fan
+ 
+ import android.content.Context
++import org.lineageos.settings.service.HardwareControlService
+ import org.lineageos.settings.utils.*
+ 
+ object FanController {
+ 
+     const val KEY_FAN_ENABLE = "fan_enable"
+     const val KEY_FAN_SPEED = "fan_speed_level"
++    const val KEY_FAN_MODE = "fan_mode"
++    const val KEY_FAN_CURVE = "fan_curve"
+ 
+     const val FAN_ENABLE_NODE = "/sys/kernel/fan/fan_enable"
+     const val FAN_SPEED_NODE = "/sys/kernel/fan/fan_speed_level"
+@@ -19,6 +22,9 @@ object FanController {
+     const val FAN_MIN_SPEED = 1
+     const val FAN_MAX_SPEED = 5
+     const val FAN_DEFAULT_SPEED = 3
++    const val FAN_MODE_MANUAL = "manual"
++    const val FAN_MODE_AUTO = "auto"
++    const val DEFAULT_CURVE = "50,60,70,80,90"
+ 
+     /*
+      * Enable or disable the fan
+@@ -26,7 +32,7 @@ object FanController {
+      */
+     fun setFanEnabled(context: Context, enabled: Boolean) {
+         putInt(context, KEY_FAN_ENABLE, if (enabled) 1 else 0)
+-        writeLine(FAN_ENABLE_NODE, if (enabled) "1" else "0")
++        HardwareControlService.requestUpdate(context)
+     }
+ 
+     /*
+@@ -34,8 +40,43 @@ object FanController {
+      * @return puts the value in place
+      */
+     fun setFanSpeed(context: Context, speed: Int) {
+-        putInt(context, KEY_FAN_SPEED, speed)
+-        writeLine(FAN_SPEED_NODE, speed.toString())
++        putInt(context, KEY_FAN_SPEED, speed.coerceIn(FAN_MIN_SPEED, FAN_MAX_SPEED))
++        HardwareControlService.requestUpdate(context)
++    }
++
++    fun setFanMode(context: Context, mode: String) {
++        putString(
++            context,
++            KEY_FAN_MODE,
++            if (mode == FAN_MODE_AUTO) FAN_MODE_AUTO else FAN_MODE_MANUAL,
++        )
++        HardwareControlService.requestUpdate(context)
++    }
++
++    fun setFanCurve(context: Context, curve: IntArray) {
++        val normalized = normalizeCurve(curve)
++        putString(context, KEY_FAN_CURVE, normalized.joinToString(","))
++        HardwareControlService.requestUpdate(context)
++    }
++
++    fun getFanCurve(context: Context): IntArray {
++        val parsed = getString(context, KEY_FAN_CURVE, DEFAULT_CURVE)
++            .split(',')
++            .mapNotNull { it.trim().toIntOrNull() }
++            .toIntArray()
++        return normalizeCurve(parsed)
++    }
++
++    private fun normalizeCurve(input: IntArray): IntArray {
++        val defaults = intArrayOf(50, 60, 70, 80, 90)
++        if (input.size != 5) return defaults
++        val output = IntArray(5)
++        input.forEachIndexed { index, value ->
++            val minimum = if (index == 0) 20 else output[index - 1] + 1
++            val maximum = 110 - (4 - index)
++            output[index] = value.coerceIn(minimum, maximum)
++        }
++        return output
+     }
+ 
+     /*
+@@ -43,8 +84,9 @@ object FanController {
+      * @return puts the value in place
+      */
+     fun applySettings(context: Context, enabled: Boolean, speed: Int) {
+-        setFanEnabled(context, enabled)
+-        setFanSpeed(context, speed)
++        putInt(context, KEY_FAN_ENABLE, if (enabled) 1 else 0)
++        putInt(context, KEY_FAN_SPEED, speed.coerceIn(FAN_MIN_SPEED, FAN_MAX_SPEED))
++        HardwareControlService.requestUpdate(context)
+     }
+ 
+     /*
+diff --git a/parts/src/org/lineageos/settings/fan/FanFragment.kt b/parts/src/org/lineageos/settings/fan/FanFragment.kt
+index 1fcfa0dd15aee611d63b9e2519f3a522e603e725..055810b5ed0fa742fcdb846f4979160fd73484e9 100644
+--- a/parts/src/org/lineageos/settings/fan/FanFragment.kt
++++ b/parts/src/org/lineageos/settings/fan/FanFragment.kt
+@@ -6,6 +6,7 @@
+ package org.lineageos.settings.fan
+ 
+ import android.os.Bundle
++import androidx.preference.ListPreference
+ import androidx.preference.Preference
+ import com.android.settingslib.widget.MainSwitchPreference
+ import com.android.settingslib.widget.SettingsBasePreferenceFragment
+@@ -17,6 +18,8 @@ class FanFragment : SettingsBasePreferenceFragment(), Preference.OnPreferenceCha
+ 
+     private lateinit var mSwitchBar: MainSwitchPreference
+     private lateinit var mFanSpeedBar: SliderPreference
++    private lateinit var mFanMode: ListPreference
++    private lateinit var mFanCurve: FanCurvePreference
+ 
+     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
+         addPreferencesFromResource(R.xml.fan_preferences)
+@@ -24,6 +27,8 @@ class FanFragment : SettingsBasePreferenceFragment(), Preference.OnPreferenceCha
+         val fanEnabled = getInt(requireContext(), FanController.KEY_FAN_ENABLE, 0) == 1
+         val savedSpeed =
+             getInt(requireContext(), FanController.KEY_FAN_SPEED, FanController.FAN_DEFAULT_SPEED)
++        val savedMode =
++            getString(requireContext(), FanController.KEY_FAN_MODE, FanController.FAN_MODE_MANUAL)
+ 
+         mSwitchBar =
+             findPreference<MainSwitchPreference>(FanController.KEY_FAN_ENABLE)!!.apply {
+@@ -41,6 +46,28 @@ class FanFragment : SettingsBasePreferenceFragment(), Preference.OnPreferenceCha
+                 isEnabled = fanEnabled
+                 onPreferenceChangeListener = this@FanFragment
+             }
++
++        mFanMode =
++            findPreference<ListPreference>(FanController.KEY_FAN_MODE)!!.apply {
++                value = savedMode
++                isEnabled = fanEnabled
++                onPreferenceChangeListener = this@FanFragment
++            }
++
++        mFanCurve =
++            findPreference<FanCurvePreference>(FanController.KEY_FAN_CURVE)!!.apply {
++                isEnabled = fanEnabled && savedMode == FanController.FAN_MODE_AUTO
++            }
++
++        updateModeState(savedMode, fanEnabled)
++    }
++
++    private fun updateModeState(mode: String, fanEnabled: Boolean = mSwitchBar.isChecked) {
++        val automatic = mode == FanController.FAN_MODE_AUTO
++        mFanSpeedBar.isVisible = !automatic
++        mFanCurve.isVisible = automatic
++        mFanSpeedBar.isEnabled = fanEnabled && !automatic
++        mFanCurve.isEnabled = fanEnabled && automatic
+     }
+ 
+     override fun onPreferenceChange(preference: Preference, newValue: Any): Boolean {
+@@ -54,8 +81,9 @@ class FanFragment : SettingsBasePreferenceFragment(), Preference.OnPreferenceCha
+                         FanController.FAN_DEFAULT_SPEED,
+                     )
+ 
+-                mFanSpeedBar.isEnabled = isEnabled
++                mFanMode.isEnabled = isEnabled
+                 FanController.applySettings(requireContext(), isEnabled, speed)
++                updateModeState(mFanMode.value ?: FanController.FAN_MODE_MANUAL, isEnabled)
+                 true
+             }
+ 
+@@ -66,6 +94,13 @@ class FanFragment : SettingsBasePreferenceFragment(), Preference.OnPreferenceCha
+                 true
+             }
+ 
++            FanController.KEY_FAN_MODE -> {
++                val mode = newValue as String
++                FanController.setFanMode(requireContext(), mode)
++                updateModeState(mode)
++                true
++            }
++
+             else -> false
+         }
+     }
+diff --git a/parts/src/org/lineageos/settings/trigger/TriggerController.kt b/parts/src/org/lineageos/settings/trigger/TriggerController.kt
+index fb4e39b08bb8ef06f1a02d719663d404374c4ad7..43f7d274b0ca10a87f172807a2b658d87c23edaf 100644
+--- a/parts/src/org/lineageos/settings/trigger/TriggerController.kt
++++ b/parts/src/org/lineageos/settings/trigger/TriggerController.kt
+@@ -6,7 +6,9 @@
+ package org.lineageos.settings.trigger
+ 
+ import android.content.Context
+-import org.lineageos.settings.utils.*
++import org.lineageos.settings.service.HardwareControlService
++import org.lineageos.settings.utils.getInt
++import org.lineageos.settings.utils.putInt
+ 
+ object TriggerController {
+ 
+@@ -24,14 +26,7 @@ object TriggerController {
+      */
+     fun setTriggerEnabled(context: Context, enabled: Boolean) {
+         putInt(context, KEY_TRIGGER_ENABLE, if (enabled) 1 else 0)
+-        writeLine(
+-            TRIGGER_BUTTON1_ENABLE_NODE,
+-            if (enabled) TRIGGER_WAKE_MODE else TRIGGER_SLEEP_MODE,
+-        )
+-        writeLine(
+-            TRIGGER_BUTTON2_ENABLE_NODE,
+-            if (enabled) TRIGGER_WAKE_MODE else TRIGGER_SLEEP_MODE,
+-        )
++        HardwareControlService.requestUpdate(context)
+     }
+ 
+     /*
+diff --git a/parts/src/org/lineageos/settings/trigger/TriggerFragment.kt b/parts/src/org/lineageos/settings/trigger/TriggerFragment.kt
+index 0d8eaded4a79c314a36eb6a767275c2ed9d5a295..fe9f96e5d5a0ed9ec70b200fee70ebc73c47ffde 100644
+--- a/parts/src/org/lineageos/settings/trigger/TriggerFragment.kt
++++ b/parts/src/org/lineageos/settings/trigger/TriggerFragment.kt
+@@ -6,7 +6,9 @@
+ package org.lineageos.settings.trigger
+ 
+ import android.os.Bundle
++import android.content.Intent
+ import androidx.preference.Preference
++import androidx.preference.PreferenceCategory
+ import com.android.settingslib.widget.MainSwitchPreference
+ import com.android.settingslib.widget.SettingsBasePreferenceFragment
+ import org.lineageos.settings.R
+@@ -15,6 +17,7 @@ import org.lineageos.settings.utils.*
+ class TriggerFragment : SettingsBasePreferenceFragment(), Preference.OnPreferenceChangeListener {
+ 
+     private lateinit var mSwitchBar: MainSwitchPreference
++    private lateinit var mSelectedApps: PreferenceCategory
+ 
+     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
+         addPreferencesFromResource(R.xml.trigger_preferences)
+@@ -26,6 +29,59 @@ class TriggerFragment : SettingsBasePreferenceFragment(), Preference.OnPreferenc
+                 setChecked(triggerEnabled)
+                 onPreferenceChangeListener = this@TriggerFragment
+             }
++
++        mSelectedApps = findPreference(TriggerConfigStore.KEY_SELECTED_APPS)!!
++        findPreference<Preference>("trigger_choose_apps")!!.setOnPreferenceClickListener {
++            startActivity(Intent(requireContext(), TriggerAppsActivity::class.java))
++            true
++        }
++        refreshSelectedApps()
++    }
++
++    override fun onResume() {
++        super.onResume()
++        if (::mSelectedApps.isInitialized) refreshSelectedApps()
++    }
++
++    private fun refreshSelectedApps() {
++        mSelectedApps.removeAll()
++        val packageManager = requireContext().packageManager
++        val selected = TriggerConfigStore.selectedApps(requireContext())
++        if (selected.isEmpty()) {
++            mSelectedApps.addPreference(Preference(requireContext()).apply {
++                title = getString(R.string.trigger_no_apps_selected)
++                isSelectable = false
++            })
++            return
++        }
++
++        selected.mapNotNull { packageName ->
++            try {
++                val info = packageManager.getApplicationInfo(packageName, 0)
++                Triple(packageName, packageManager.getApplicationLabel(info).toString(), info)
++            } catch (_: Throwable) {
++                null
++            }
++        }.sortedBy { it.second.lowercase() }.forEach { (packageName, label, info) ->
++            val mapping = TriggerConfigStore.read(requireContext(), packageName)
++            mSelectedApps.addPreference(Preference(requireContext()).apply {
++                title = label
++                icon = packageManager.getApplicationIcon(info)
++                summary = mappingSummary(mapping)
++                setOnPreferenceClickListener {
++                    startActivity(Intent(requireContext(), TriggerAppActivity::class.java).apply {
++                        putExtra(TriggerAppActivity.EXTRA_PACKAGE, packageName)
++                    })
++                    true
++                }
++            })
++        }
++    }
++
++    private fun mappingSummary(mapping: TriggerConfigStore.Mapping): String {
++        val left = if (mapping.left.enabled) getString(R.string.state_enabled) else getString(R.string.state_disabled)
++        val right = if (mapping.right.enabled) getString(R.string.state_enabled) else getString(R.string.state_disabled)
++        return getString(R.string.trigger_app_summary, left, right)
+     }
+ 
+     override fun onPreferenceChange(preference: Preference, newValue: Any): Boolean {
+diff --git a/parts/src/org/lineageos/settings/utils/SettingsUtils.kt b/parts/src/org/lineageos/settings/utils/SettingsUtils.kt
+index 2cd328bb425f1e48f423ad0ca8412dab41ebd234..e0a14ed60715fa3a9611ff96296333654d76ee71 100644
+--- a/parts/src/org/lineageos/settings/utils/SettingsUtils.kt
++++ b/parts/src/org/lineageos/settings/utils/SettingsUtils.kt
+@@ -25,3 +25,11 @@ fun putInt(context: Context, key: String, value: Int) {
+ fun getInt(context: Context, key: String, defaultValue: Int): Int {
+     return Settings.Global.getInt(context.contentResolver, SETTINGS_PREFIX + key, defaultValue)
+ }
++
++fun putString(context: Context, key: String, value: String) {
++    Settings.Global.putString(context.contentResolver, SETTINGS_PREFIX + key, value)
++}
++
++fun getString(context: Context, key: String, defaultValue: String): String {
++    return Settings.Global.getString(context.contentResolver, SETTINGS_PREFIX + key) ?: defaultValue
++}
+diff --git a/rro_overlays/FrameworksResTarget_Vendor/res/values/config.xml b/rro_overlays/FrameworksResTarget_Vendor/res/values/config.xml
+index a19d8113fb66db5974d9d3b49e70ab7fbecfd5a7..1beaeb018770bc29fbd6e60eed22f8cb51f72ce9 100644
+--- a/rro_overlays/FrameworksResTarget_Vendor/res/values/config.xml
++++ b/rro_overlays/FrameworksResTarget_Vendor/res/values/config.xml
+@@ -4,6 +4,10 @@
+      SPDX-License-Identifier: Apache-2.0
+ -->
+ <resources>
++    <!-- NubiaParts needs notification state only to drive the external RGB while
++         the display is off. Grant listener access on first boot. -->
++    <string name="config_defaultListenerAccessPackages" translatable="false">org.lineageos.settings</string>
++
+     <!-- Enables or disables haptic effect when the text insertion/selection handle is moved
+          manually by the user. Off by default, since the expected haptic feedback may not be
+          available on some devices. -->
+diff --git a/sepolicy/private/devicesettings_app.te b/sepolicy/private/devicesettings_app.te
+index aed1f2150b8cc63cb8023ec5675daef4f30673e9..4c91f37e6e0c3d582165ae389e7186e709f27619 100644
+--- a/sepolicy/private/devicesettings_app.te
++++ b/sepolicy/private/devicesettings_app.te
+@@ -5,5 +5,6 @@ allow devicesettings_app {
+     app_api_service
+ }:service_manager find;
+ 
+-rw_dir_file(devicesettings_app, sysfs_fan)
+-rw_dir_file(devicesettings_app, proc_touchkey)
++allow devicesettings_app tiro_hardware_data_file:dir create_dir_perms;
++allow devicesettings_app tiro_hardware_data_file:file create_file_perms;
++allow devicesettings_app system_data_file:dir search;
+diff --git a/sepolicy/private/file.te b/sepolicy/private/file.te
+index c8bcd5eac39558c6a827c3ac235f8bd2898b9754..6375010f15d63f4fbdccee46743feb3f76eeca37 100644
+--- a/sepolicy/private/file.te
++++ b/sepolicy/private/file.te
+@@ -1,5 +1,12 @@
+ # Fan control
+ type sysfs_fan, fs_type, sysfs_type;
+ 
++# Display high brightness mode
++
+ # Trigger buttons
+ type proc_touchkey, fs_type, proc_type;
++
++# Nubia hardware control service
++type tiro_hardware_service_exec, exec_type, file_type, system_file_type;
++type tiro_hardware_data_file, file_type, data_file_type, core_data_file_type;
++type sysfs_tiro_rgb, fs_type, sysfs_type;
+diff --git a/sepolicy/private/genfs_contexts b/sepolicy/private/genfs_contexts
+index 209f909050dd45229bd98199cad51a985b510f4a..caad6314785a7085ffb7f6b20c832afab63a9c63 100644
+--- a/sepolicy/private/genfs_contexts
++++ b/sepolicy/private/genfs_contexts
+@@ -2,6 +2,11 @@
+ genfscon sysfs /kernel/fan/fan_enable         u:object_r:sysfs_fan:s0
+ genfscon sysfs /kernel/fan/fan_speed_level    u:object_r:sysfs_fan:s0
+ 
++# Display high brightness mode
++
+ # Trigger buttons
+ genfscon proc /nubia_key/sar0/mode_operation    u:object_r:proc_touchkey:s0
+ genfscon proc /nubia_key/sar1/mode_operation    u:object_r:proc_touchkey:s0
++
++# RedMagic external and fan RGB controller
++genfscon sysfs /class/leds/aw22xxx_led          u:object_r:sysfs_tiro_rgb:s0

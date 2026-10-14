@@ -1,0 +1,10 @@
+commit 9fa985a1541b96115734db32a220261b3fe9eb0c
+Author:     ggover <ggover@localhost>
+AuthorDate: Mon Oct 12 21:44:07 2026 +0000
+Commit:     ggover <ggover@localhost>
+CommitDate: Mon Oct 12 21:44:07 2026 +0000
+
+    Identify Tiro AxionOS builds as unofficial
+
+ device.mk | 16 +++++++++++++++-
+ 1 file changed, 15 insertions(+), 1 deletion(-)

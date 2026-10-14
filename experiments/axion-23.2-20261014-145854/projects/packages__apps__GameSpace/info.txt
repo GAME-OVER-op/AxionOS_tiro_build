@@ -1,0 +1,38 @@
+REPO_PATH=packages/apps/GameSpace
+HEAD=7558557c13d6b7318e17e1e029f5d6accdc4a7e4
+
+===== REMOTES =====
+axion	https://github.com/AxionAOSP/android_packages_apps_GameSpace (fetch)
+axion	https://github.com/AxionAOSP/android_packages_apps_GameSpace (push)
+
+===== BRANCHES =====
+* (no branch)                7558557 New Crowdin updates (#15)
+  remotes/axion/lineage-23.2 7558557 New Crowdin updates (#15)
+  remotes/m/lineage-23.2     -> axion/lineage-23.2
+
+===== STATUS =====
+ M app/src/main/Android.bp
+ M app/src/main/AndroidManifest.xml
+ M app/src/main/java/com/android/axion/gamespace/GameSpace.kt
+ M app/src/main/java/com/android/axion/gamespace/data/GameSession.kt
+ M app/src/main/java/com/android/axion/gamespace/data/SessionState.kt
+ M app/src/main/java/com/android/axion/gamespace/data/SystemSettings.kt
+ M app/src/main/java/com/android/axion/gamespace/data/UserGame.kt
+ M app/src/main/java/com/android/axion/gamespace/gamebar/SessionService.kt
+ M app/src/main/java/com/android/axion/gamespace/gamebar/mapper/KeyInputMonitor.kt
+ M app/src/main/java/com/android/axion/gamespace/settings/SettingsActivity.kt
+ M app/src/main/java/com/android/axion/gamespace/ui/screens/GameHubScreen.kt
+ M app/src/main/java/com/android/axion/gamespace/ui/screens/PerAppSettingsScreen.kt
+ M app/src/main/java/com/android/axion/gamespace/ui/screens/SettingsScreen.kt
+ M app/src/main/java/com/android/axion/gamespace/ui/viewmodel/PerAppSettingsViewModel.kt
+ M app/src/main/java/com/android/axion/gamespace/ui/viewmodel/SettingsViewModel.kt
+ M app/src/main/java/com/android/axion/gamespace/utils/GameModeUtils.kt
+ M app/src/main/privapp_whitelist_com.android.axion.gamespace.xml
+ M app/src/main/res/values-ru/strings.xml
+ M app/src/main/res/values/strings.xml
+?? app/src/main/java/com/android/axion/gamespace/gamebar/GameSliderBootReceiver.kt
+?? app/src/main/java/com/android/axion/gamespace/gamebar/GameSliderService.kt
+?? app/src/main/java/com/android/axion/gamespace/utils/HighTouchPollingController.kt
+
+===== LOCAL-ONLY COMMITS =====
+

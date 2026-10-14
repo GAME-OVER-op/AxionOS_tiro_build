@@ -1,0 +1,511 @@
+diff --git a/configs/pineapple/audio_effects.conf b/configs/pineapple/audio_effects.conf
+index 7dce3ddbb0c2cc71a67869c128b013414bf286ba..9316fe5b41f3d89e63b58ad5d8646611ac524460 100644
+--- a/configs/pineapple/audio_effects.conf
++++ b/configs/pineapple/audio_effects.conf
+@@ -6,6 +6,9 @@
+ #        }
+ #    }
+ libraries {
++  dtsaudio {
++    path /vendor/lib64/soundfx/libdtsaudio.so
++  }
+   bundle {
+     path /vendor/lib/soundfx/libbundlewrapper.so
+   }
+@@ -76,6 +79,10 @@ libraries {
+ #    }
+ 
+ effects {
++  dts_audio {
++    library dtsaudio
++    uuid 146edfc0-7ed2-11e4-80eb-0002a5d5c51b
++  }
+ 
+ # additions for the proxy implementation
+ # Proxy implementation
+@@ -269,26 +276,47 @@ effects {
+ # UUID generated using version 1
+ 
+ output_session_processing {
++    system {
++    }
++    bluetooth_sco {
++    }
++    dtmf {
++    }
++    enforced_audible {
++    }
++    accessibility {
++    }
++    tts {
++    }
++    assistant {
++    }
++    call_assistant {
++    }
++    patch {
++        dts_audio {
++        }
++    }
++    rerouting {
++        dts_audio {
++        }
++    }
+     music {
+-        music_helper {
++        dts_audio {
+         }
++
+     }
+     ring {
+-        ring_helper {
+-        }
++
+     }
+     alarm {
+-        alarm_helper {
+-        }
++
+     }
+     # stream type voice_call is used for VoIP call
+     voice_call {
+-        voice_helper {
+-        }
++
+     }
+     notification {
+-        notification_helper {
+-        }
++
+     }
+ }
+ 
+diff --git a/configs/pineapple/audio_effects.xml b/configs/pineapple/audio_effects.xml
+index 6af7c7075d4f7ab27f5d0dd2732161e35f97db14..159b393bbcf4e76661f4ae535bbeb54fa90db0d1 100644
+--- a/configs/pineapple/audio_effects.xml
++++ b/configs/pineapple/audio_effects.xml
+@@ -62,6 +62,7 @@
+ 
+ <audio_effects_conf version="2.0" xmlns="http://schemas.android.com/audio/audio_effects_conf/v2_0">
+     <libraries>
++        <library name="dtsaudio" path="libdtsaudio.so"/>
+         <library name="bundle" path="libbundlewrapper.so"/>
+         <library name="reverb" path="libreverbwrapper.so"/>
+         <library name="visualizer_sw" path="libvisualizer.so"/>
+@@ -77,6 +78,7 @@
+         <library name="quasar" path="libquasar.so"/>
+     </libraries>
+     <effects>
++        <effect name="dts_audio" library="dtsaudio" uuid="146edfc0-7ed2-11e4-80eb-0002a5d5c51b"/>
+         <effectProxy name="bassboost" library="proxy" uuid="14804144-a5ee-4d24-aa88-0002a5d5c51b">
+             <libsw library="bundle" uuid="8631f300-72e2-11df-b57e-0002a5d5c51b"/>
+             <libhw library="offload_bundle" uuid="2c4a8c24-1581-487f-94f6-0002a5d5c51b"/>
+@@ -125,20 +127,43 @@
+         <effect name="quasar" library="quasar" uuid="71d0e2ee-e44d-483d-a809-09e75ee55ecd"/>
+     </effects>
+     <postprocess>
++        <stream type="system">
++        </stream>
++        <stream type="bluetooth_sco">
++        </stream>
++        <stream type="dtmf">
++        </stream>
++        <stream type="enforced_audible">
++        </stream>
++        <stream type="accessibility">
++        </stream>
++        <stream type="tts">
++        </stream>
++        <stream type="assistant">
++        </stream>
++        <stream type="call_assistant">
++        </stream>
++        <stream type="patch">
++            <apply effect="dts_audio"/>
++        </stream>
++        <stream type="rerouting">
++            <apply effect="dts_audio"/>
++        </stream>
+         <stream type="music">
+-            <apply effect="music_helper"/>
++            <apply effect="dts_audio"/>
++
+         </stream>
+         <stream type="ring">
+-            <apply effect="ring_helper"/>
++
+         </stream>
+         <stream type="alarm">
+-            <apply effect="alarm_helper"/>
++
+         </stream>
+         <stream type="voice_call">
+-            <apply effect="voice_helper"/>
++
+         </stream>
+         <stream type="notification">
+-            <apply effect="notification_helper"/>
++
+         </stream>
+     </postprocess>
+     <preprocess>
+diff --git a/configs/pineapple/audio_policy_configuration.xml b/configs/pineapple/audio_policy_configuration.xml
+index 7c0796c9a244b7239e6aa0905d7fbf4785d95cef..e28324534de3c5cee023c6f55b01f7042e081eb8 100644
+--- a/configs/pineapple/audio_policy_configuration.xml
++++ b/configs/pineapple/audio_policy_configuration.xml
+@@ -18,9 +18,9 @@
+ -->
+ 
+ <!--
+-Changes from Qualcomm Innovation Center, Inc. are provided under the following license:
++Changes from Qualcomm Innovation Center are provided under the following license:
+ 
+-Copyright (c) 2022-2024 Qualcomm Innovation Center, Inc. All rights reserved.
++Copyright (c) 2022-2023 Qualcomm Innovation Center, Inc. All rights reserved.
+ SPDX-License-Identifier: BSD-3-Clause-Clear
+ -->
+ 
+@@ -71,15 +71,6 @@ SPDX-License-Identifier: BSD-3-Clause-Clear
+                     <profile name="" format="AUDIO_FORMAT_PCM_16_BIT"
+                              samplingRates="48000" channelMasks="AUDIO_CHANNEL_OUT_STEREO"/>
+                 </mixPort>
+-                <mixPort name="raw" role="source"
+-                        flags="AUDIO_OUTPUT_FLAG_FAST AUDIO_OUTPUT_FLAG_RAW">
+-                    <profile name="" format="AUDIO_FORMAT_PCM_16_BIT"
+-                             samplingRates="48000" channelMasks="AUDIO_CHANNEL_OUT_STEREO"/>
+-                </mixPort>
+-                <mixPort name="haptics output" role="source">
+-                    <profile name="" format="AUDIO_FORMAT_PCM_16_BIT"
+-                             samplingRates="48000" channelMasks="AUDIO_CHANNEL_OUT_STEREO_HAPTIC_A"/>
+-                </mixPort>
+                 <mixPort name="deep_buffer" role="source"
+                         flags="AUDIO_OUTPUT_FLAG_DEEP_BUFFER">
+                     <profile name="" format="AUDIO_FORMAT_PCM_16_BIT"
+@@ -91,36 +82,6 @@ SPDX-License-Identifier: BSD-3-Clause-Clear
+                     <profile name="" format="AUDIO_FORMAT_PCM_32_BIT"
+                              samplingRates="48000" channelMasks="AUDIO_CHANNEL_OUT_STEREO"/>
+                 </mixPort>
+-                <mixPort name="mmap_no_irq_out" role="source" flags="AUDIO_OUTPUT_FLAG_DIRECT AUDIO_OUTPUT_FLAG_MMAP_NOIRQ">
+-                    <profile name="" format="AUDIO_FORMAT_PCM_16_BIT"
+-                             samplingRates="48000" channelMasks="AUDIO_CHANNEL_OUT_STEREO"/>
+-                    <profile name="" format="AUDIO_FORMAT_PCM_8_24_BIT"
+-                             samplingRates="48000" channelMasks="AUDIO_CHANNEL_OUT_STEREO"/>
+-                    <profile name="" format="AUDIO_FORMAT_PCM_24_BIT_PACKED"
+-                             samplingRates="48000" channelMasks="AUDIO_CHANNEL_OUT_STEREO"/>
+-                    <profile name="" format="AUDIO_FORMAT_PCM_32_BIT"
+-                             samplingRates="48000" channelMasks="AUDIO_CHANNEL_OUT_STEREO"/>
+-                </mixPort>
+-                <mixPort name="hifi_playback" role="source" />
+-                <mixPort name="spatial output" role="source" flags="AUDIO_OUTPUT_FLAG_SPATIALIZER">
+-                    <profile name="" format="AUDIO_FORMAT_PCM_16_BIT"
+-                             samplingRates="48000" channelMasks="AUDIO_CHANNEL_OUT_STEREO"/>
+-                </mixPort>
+-                <mixPort name="direct_pcm" role="source" recommendedMuteDurationMs="160"
+-                        flags="AUDIO_OUTPUT_FLAG_DIRECT">
+-                    <profile name="" format="AUDIO_FORMAT_PCM_16_BIT"
+-                             samplingRates="8000 11025 12000 16000 22050 24000 32000 44100 48000 64000 88200 96000 128000 176400 192000"
+-                             channelMasks="AUDIO_CHANNEL_OUT_MONO AUDIO_CHANNEL_OUT_STEREO AUDIO_CHANNEL_OUT_2POINT1 AUDIO_CHANNEL_OUT_QUAD AUDIO_CHANNEL_OUT_PENTA AUDIO_CHANNEL_OUT_5POINT1 AUDIO_CHANNEL_OUT_6POINT1 AUDIO_CHANNEL_OUT_7POINT1"/>
+-                    <profile name="" format="AUDIO_FORMAT_PCM_8_24_BIT"
+-                             samplingRates="8000 11025 12000 16000 22050 24000 32000 44100 48000 64000 88200 96000 128000 176400 192000 352800 384000"
+-                             channelMasks="AUDIO_CHANNEL_OUT_MONO AUDIO_CHANNEL_OUT_STEREO AUDIO_CHANNEL_OUT_2POINT1 AUDIO_CHANNEL_OUT_QUAD AUDIO_CHANNEL_OUT_PENTA AUDIO_CHANNEL_OUT_5POINT1 AUDIO_CHANNEL_OUT_6POINT1 AUDIO_CHANNEL_OUT_7POINT1"/>
+-                    <profile name="" format="AUDIO_FORMAT_PCM_24_BIT_PACKED"
+-                             samplingRates="8000 11025 12000 16000 22050 24000 32000 44100 48000 64000 88200 96000 128000 176400 192000 352800 384000"
+-                             channelMasks="AUDIO_CHANNEL_OUT_MONO AUDIO_CHANNEL_OUT_STEREO AUDIO_CHANNEL_OUT_2POINT1 AUDIO_CHANNEL_OUT_QUAD AUDIO_CHANNEL_OUT_PENTA AUDIO_CHANNEL_OUT_5POINT1 AUDIO_CHANNEL_OUT_6POINT1 AUDIO_CHANNEL_OUT_7POINT1"/>
+-                  <profile name="" format="AUDIO_FORMAT_PCM_32_BIT"
+-                             samplingRates="8000 11025 12000 16000 22050 24000 32000 44100 48000 64000 88200 96000 128000 176400 192000 352800 384000"
+-                             channelMasks="AUDIO_CHANNEL_OUT_MONO AUDIO_CHANNEL_OUT_STEREO AUDIO_CHANNEL_OUT_2POINT1 AUDIO_CHANNEL_OUT_QUAD AUDIO_CHANNEL_OUT_PENTA AUDIO_CHANNEL_OUT_5POINT1 AUDIO_CHANNEL_OUT_6POINT1 AUDIO_CHANNEL_OUT_7POINT1"/>
+-                </mixPort>
+                 <mixPort name="compressed_offload" role="source"
+                          flags="AUDIO_OUTPUT_FLAG_DIRECT AUDIO_OUTPUT_FLAG_COMPRESS_OFFLOAD AUDIO_OUTPUT_FLAG_NON_BLOCKING AUDIO_OUTPUT_FLAG_GAPLESS_OFFLOAD">
+                     <profile name="" format="AUDIO_FORMAT_MP3"
+@@ -172,6 +133,44 @@ SPDX-License-Identifier: BSD-3-Clause-Clear
+                              samplingRates="8000 12000 16000 24000 48000"
+                              channelMasks="AUDIO_CHANNEL_OUT_STEREO AUDIO_CHANNEL_OUT_MONO"/>
+                 </mixPort>
++                <mixPort name="mirror out" role="source" flags="AUDIO_OUTPUT_FLAG_FAST" standAlone="true">
++                    <profile name="" format="AUDIO_FORMAT_PCM_16_BIT"
++                             samplingRates="48000" channelMasks="AUDIO_CHANNEL_OUT_STEREO"/>
++                </mixPort>
++                <mixPort name="hifi_playback" role="source" />
++                <mixPort name="spatial output" role="source" flags="AUDIO_OUTPUT_FLAG_SPATIALIZER">
++                    <profile name="" format="AUDIO_FORMAT_PCM_16_BIT"
++                             samplingRates="48000" channelMasks="AUDIO_CHANNEL_OUT_STEREO"/>
++                </mixPort>
++                <mixPort name="direct_pcm" role="source" recommendedMuteDurationMs="160"
++                        flags="AUDIO_OUTPUT_FLAG_DIRECT">
++                    <profile name="" format="AUDIO_FORMAT_PCM_16_BIT"
++                             samplingRates="8000 11025 12000 16000 22050 24000 32000 44100 48000 64000 88200 96000 128000 176400 192000"
++                             channelMasks="AUDIO_CHANNEL_OUT_MONO AUDIO_CHANNEL_OUT_STEREO AUDIO_CHANNEL_OUT_2POINT1 AUDIO_CHANNEL_OUT_QUAD AUDIO_CHANNEL_OUT_PENTA AUDIO_CHANNEL_OUT_5POINT1 AUDIO_CHANNEL_OUT_6POINT1 AUDIO_CHANNEL_OUT_7POINT1"/>
++                    <profile name="" format="AUDIO_FORMAT_PCM_8_24_BIT"
++                             samplingRates="8000 11025 12000 16000 22050 24000 32000 44100 48000 64000 88200 96000 128000 176400 192000 352800 384000"
++                             channelMasks="AUDIO_CHANNEL_OUT_MONO AUDIO_CHANNEL_OUT_STEREO AUDIO_CHANNEL_OUT_2POINT1 AUDIO_CHANNEL_OUT_QUAD AUDIO_CHANNEL_OUT_PENTA AUDIO_CHANNEL_OUT_5POINT1 AUDIO_CHANNEL_OUT_6POINT1 AUDIO_CHANNEL_OUT_7POINT1"/>
++                    <profile name="" format="AUDIO_FORMAT_PCM_24_BIT_PACKED"
++                             samplingRates="8000 11025 12000 16000 22050 24000 32000 44100 48000 64000 88200 96000 128000 176400 192000 352800 384000"
++                             channelMasks="AUDIO_CHANNEL_OUT_MONO AUDIO_CHANNEL_OUT_STEREO AUDIO_CHANNEL_OUT_2POINT1 AUDIO_CHANNEL_OUT_QUAD AUDIO_CHANNEL_OUT_PENTA AUDIO_CHANNEL_OUT_5POINT1 AUDIO_CHANNEL_OUT_6POINT1 AUDIO_CHANNEL_OUT_7POINT1"/>
++                  <profile name="" format="AUDIO_FORMAT_PCM_32_BIT"
++                             samplingRates="8000 11025 12000 16000 22050 24000 32000 44100 48000 64000 88200 96000 128000 176400 192000 352800 384000"
++                             channelMasks="AUDIO_CHANNEL_OUT_MONO AUDIO_CHANNEL_OUT_STEREO AUDIO_CHANNEL_OUT_2POINT1 AUDIO_CHANNEL_OUT_QUAD AUDIO_CHANNEL_OUT_PENTA AUDIO_CHANNEL_OUT_5POINT1 AUDIO_CHANNEL_OUT_6POINT1 AUDIO_CHANNEL_OUT_7POINT1"/>
++                </mixPort>
++                <mixPort name="loop_back" role="source" magicChat="true">
++                    <profile name="" format="AUDIO_FORMAT_PCM_16_BIT"
++                             samplingRates="48000" channelMasks="AUDIO_CHANNEL_OUT_STEREO"/>
++                    <profile name="" format="AUDIO_FORMAT_PCM_8_24_BIT"
++                             samplingRates="48000" channelMasks="AUDIO_CHANNEL_OUT_STEREO"/>
++                    <profile name="" format="AUDIO_FORMAT_PCM_24_BIT_PACKED"
++                             samplingRates="48000" channelMasks="AUDIO_CHANNEL_OUT_STEREO"/>
++                    <profile name="" format="AUDIO_FORMAT_PCM_32_BIT"
++                             samplingRates="48000" channelMasks="AUDIO_CHANNEL_OUT_STEREO"/>
++                </mixPort>
++                <mixPort name="mmap_no_irq_out" role="source" flags="AUDIO_OUTPUT_FLAG_DIRECT AUDIO_OUTPUT_FLAG_MMAP_NOIRQ">
++                    <profile name="" format="AUDIO_FORMAT_PCM_16_BIT"
++                             samplingRates="48000" channelMasks="AUDIO_CHANNEL_OUT_STEREO"/>
++                </mixPort>
+                 <mixPort name="voice_tx" role="source">
+                     <profile name="" format="AUDIO_FORMAT_PCM_16_BIT"
+                              samplingRates="8000 16000 48000" channelMasks="AUDIO_CHANNEL_OUT_MONO AUDIO_CHANNEL_OUT_STEREO"/>
+@@ -193,30 +192,12 @@ SPDX-License-Identifier: BSD-3-Clause-Clear
+                              samplingRates="8000 11025 12000 16000 22050 24000 32000 44100 48000"
+                              channelMasks="AUDIO_CHANNEL_IN_MONO AUDIO_CHANNEL_IN_STEREO AUDIO_CHANNEL_IN_FRONT_BACK"/>
+                 </mixPort>
+-                <mixPort name="compress-input" role="sink"
+-                         flags="AUDIO_INPUT_FLAG_DIRECT" >
+-                    <profile name="compress-capture-AAC-LC" format="AUDIO_FORMAT_AAC_LC"
+-                             samplingRates="8000 11025 12000 16000 22050 24000 32000 44100 48000"
+-                             channelMasks="AUDIO_CHANNEL_IN_MONO AUDIO_CHANNEL_IN_STEREO AUDIO_CHANNEL_IN_FRONT_BACK"/>
+-                    <profile name="compress-capture-AAC-HE-V1" format="AUDIO_FORMAT_AAC_ADTS_HE_V1"
+-                             samplingRates="24000 32000 44100 48000"
+-                             channelMasks="AUDIO_CHANNEL_IN_MONO AUDIO_CHANNEL_IN_STEREO AUDIO_CHANNEL_IN_FRONT_BACK"/>
+-                    <profile name="compress-capture-AAC-HE-V2" format="AUDIO_FORMAT_AAC_ADTS_HE_V2"
+-                             samplingRates="24000 32000 44100 48000"
+-                             channelMasks="AUDIO_CHANNEL_IN_STEREO"/>
+-                </mixPort>
+                 <mixPort name="fast input" role="sink"
+                          flags="AUDIO_INPUT_FLAG_FAST">
+                      <profile name="" format="AUDIO_FORMAT_PCM_16_BIT"
+                               samplingRates="8000 11025 12000 16000 22050 24000 32000 44100 48000"
+                               channelMasks="AUDIO_CHANNEL_IN_MONO AUDIO_CHANNEL_IN_STEREO AUDIO_CHANNEL_IN_FRONT_BACK"/>
+                 </mixPort>
+-                <mixPort name="fast_raw_input" role="sink"
+-                         flags="AUDIO_INPUT_FLAG_FAST AUDIO_INPUT_FLAG_RAW">
+-                     <profile name="" format="AUDIO_FORMAT_PCM_16_BIT"
+-                              samplingRates="8000 11025 12000 16000 22050 24000 32000 44100 48000"
+-                              channelMasks="AUDIO_CHANNEL_IN_MONO AUDIO_CHANNEL_IN_STEREO AUDIO_CHANNEL_IN_FRONT_BACK"/>
+-                </mixPort>
+                 <mixPort name="quad mic" role="sink">
+                     <profile name="" format="AUDIO_FORMAT_PCM_16_BIT"
+                         samplingRates="48000"
+@@ -249,10 +230,6 @@ SPDX-License-Identifier: BSD-3-Clause-Clear
+                              samplingRates="8000 11025 12000 16000 22050 24000 32000 44100 48000 96000 192000"
+                              channelMasks="AUDIO_CHANNEL_IN_MONO AUDIO_CHANNEL_IN_STEREO AUDIO_CHANNEL_IN_FRONT_BACK AUDIO_CHANNEL_INDEX_MASK_3 AUDIO_CHANNEL_INDEX_MASK_4"/>
+                 </mixPort>
+-                <mixPort name="voice_rx" role="sink">
+-                    <profile name="" format="AUDIO_FORMAT_PCM_16_BIT"
+-                             samplingRates="8000 16000 48000" channelMasks="AUDIO_CHANNEL_IN_MONO AUDIO_CHANNEL_IN_STEREO"/>
+-                </mixPort>
+                 <mixPort name="mmap_no_irq_in" role="sink" flags="AUDIO_INPUT_FLAG_MMAP_NOIRQ">
+                     <profile name="" format="AUDIO_FORMAT_PCM_16_BIT"
+                              samplingRates="8000 11025 12000 16000 22050 24000 32000 44100 48000"
+@@ -263,7 +240,10 @@ SPDX-License-Identifier: BSD-3-Clause-Clear
+                     <profile name="" format="AUDIO_FORMAT_PCM_8_24_BIT"
+                              samplingRates="8000 11025 12000 16000 22050 24000 32000 44100 48000"
+                              channelMasks="AUDIO_CHANNEL_IN_MONO AUDIO_CHANNEL_IN_STEREO AUDIO_CHANNEL_IN_FRONT_BACK AUDIO_CHANNEL_INDEX_MASK_3"/>
+-
++                </mixPort>
++                <mixPort name="voice_rx" role="sink">
++                    <profile name="" format="AUDIO_FORMAT_PCM_16_BIT"
++                             samplingRates="8000 16000 48000" channelMasks="AUDIO_CHANNEL_IN_MONO AUDIO_CHANNEL_IN_STEREO"/>
+                 </mixPort>
+                 <mixPort name="hifi_input" role="sink" />
+             </mixPorts>
+@@ -314,44 +294,25 @@ SPDX-License-Identifier: BSD-3-Clause-Clear
+                     <profile name="" format="AUDIO_FORMAT_PCM_16_BIT"
+                              samplingRates="8000 11025 16000 22050 32000 44100 48000 64000 88200 96000 128000 176400 192000"/>
+                 </devicePort>
+-                <devicePort tagName="IP out" type="AUDIO_DEVICE_OUT_IP" role="sink">
+-                    <profile name="" format="AUDIO_FORMAT_PCM_16_BIT"
+-                             samplingRates="8000 11025 16000 22050 32000 44100 48000 64000 88200 96000 128000 176400 192000"/>
+-                </devicePort>
+                 <devicePort tagName="FM" type="AUDIO_DEVICE_OUT_FM" role="sink">
+                     <profile name="" format="AUDIO_FORMAT_PCM_16_BIT"
+                              samplingRates="48000" channelMasks="AUDIO_CHANNEL_OUT_MONO AUDIO_CHANNEL_OUT_STEREO"/>
+                 </devicePort>
+                 <devicePort tagName="BT A2DP Out" type="AUDIO_DEVICE_OUT_BLUETOOTH_A2DP" role="sink"
+-                            encodedFormats="AUDIO_FORMAT_SBC AUDIO_FORMAT_AAC AUDIO_FORMAT_APTX AUDIO_FORMAT_APTX_HD AUDIO_FORMAT_LDAC AUDIO_FORMAT_CELT AUDIO_FORMAT_APTX_ADAPTIVE AUDIO_FORMAT_APTX_TWSP AUDIO_FORMAT_LC3">
++                            encodedFormats="AUDIO_FORMAT_SBC AUDIO_FORMAT_AAC AUDIO_FORMAT_APTX AUDIO_FORMAT_APTX_HD AUDIO_FORMAT_LDAC">
+                     <profile name="" format="AUDIO_FORMAT_PCM_16_BIT"
+                              samplingRates="48000" channelMasks="AUDIO_CHANNEL_OUT_STEREO"/>
+                 </devicePort>
+                 <devicePort tagName="BT A2DP Headphones" type="AUDIO_DEVICE_OUT_BLUETOOTH_A2DP_HEADPHONES" role="sink"
+-                            encodedFormats="AUDIO_FORMAT_SBC AUDIO_FORMAT_AAC AUDIO_FORMAT_APTX AUDIO_FORMAT_APTX_HD AUDIO_FORMAT_LDAC AUDIO_FORMAT_CELT AUDIO_FORMAT_APTX_ADAPTIVE AUDIO_FORMAT_APTX_TWSP AUDIO_FORMAT_LC3">
++                            encodedFormats="AUDIO_FORMAT_SBC AUDIO_FORMAT_AAC AUDIO_FORMAT_APTX AUDIO_FORMAT_APTX_HD AUDIO_FORMAT_LDAC">
+                     <profile name="" format="AUDIO_FORMAT_PCM_16_BIT"
+                              samplingRates="48000" channelMasks="AUDIO_CHANNEL_OUT_STEREO"/>
+                 </devicePort>
+                 <devicePort tagName="BT A2DP Speaker" type="AUDIO_DEVICE_OUT_BLUETOOTH_A2DP_SPEAKER" role="sink"
+-                            encodedFormats="AUDIO_FORMAT_SBC AUDIO_FORMAT_AAC AUDIO_FORMAT_APTX AUDIO_FORMAT_APTX_HD AUDIO_FORMAT_LDAC AUDIO_FORMAT_CELT AUDIO_FORMAT_APTX_ADAPTIVE AUDIO_FORMAT_APTX_TWSP AUDIO_FORMAT_LC3">
++                            encodedFormats="AUDIO_FORMAT_SBC AUDIO_FORMAT_AAC AUDIO_FORMAT_APTX AUDIO_FORMAT_APTX_HD AUDIO_FORMAT_LDAC">
+                     <profile name="" format="AUDIO_FORMAT_PCM_16_BIT"
+                              samplingRates="48000" channelMasks="AUDIO_CHANNEL_OUT_STEREO"/>
+                 </devicePort>
+-                <devicePort tagName="BT BLE Out" type="AUDIO_DEVICE_OUT_BLE_HEADSET" role="sink"
+-                            encodedFormats="AUDIO_FORMAT_LC3 VX_AUDIO_FORMAT_APTX_ADAPTIVE_QLEA">
+-                    <profile name="" format="AUDIO_FORMAT_PCM_16_BIT"
+-                             samplingRates="8000 16000 32000 48000" channelMasks="AUDIO_CHANNEL_OUT_MONO AUDIO_CHANNEL_OUT_STEREO"/>
+-                </devicePort>
+-                <devicePort tagName="BT BLE Speaker" type="AUDIO_DEVICE_OUT_BLE_SPEAKER" role="sink"
+-                            encodedFormats="AUDIO_FORMAT_LC3 VX_AUDIO_FORMAT_APTX_ADAPTIVE_QLEA">
+-                    <profile name="" format="AUDIO_FORMAT_PCM_16_BIT"
+-                             samplingRates="8000 16000 32000 48000" channelMasks="AUDIO_CHANNEL_OUT_MONO AUDIO_CHANNEL_OUT_STEREO"/>
+-                </devicePort>
+-                <devicePort tagName="BT BLE Broadcast" type="AUDIO_DEVICE_OUT_BLE_BROADCAST" role="sink"
+-                            encodedFormats="AUDIO_FORMAT_LC3">
+-                    <profile name="" format="AUDIO_FORMAT_PCM_16_BIT"
+-                             samplingRates="8000 16000 32000 48000" channelMasks="AUDIO_CHANNEL_OUT_MONO AUDIO_CHANNEL_OUT_STEREO"/>
+-                </devicePort>
+                 <devicePort tagName="USB Device Out" type="AUDIO_DEVICE_OUT_USB_DEVICE" role="sink">
+                     <profile name="" format="AUDIO_FORMAT_PCM_16_BIT"
+                              samplingRates="44100 48000 64000 88200 96000 128000 176400 192000"/>
+@@ -420,111 +381,64 @@ SPDX-License-Identifier: BSD-3-Clause-Clear
+                     <profile name="" format="AUDIO_FORMAT_PCM_16_BIT"
+                              samplingRates="48000" channelMasks="AUDIO_CHANNEL_IN_MONO"/>
+                 </devicePort>
+-                <devicePort tagName="BLE In" type="AUDIO_DEVICE_IN_BLE_HEADSET" role="source"
+-                            encodedFormats="AUDIO_FORMAT_LC3">
+-                    <profile name="" format="AUDIO_FORMAT_PCM_16_BIT"
+-                             samplingRates="8000 16000 24000 44100 48000" channelMasks="AUDIO_CHANNEL_IN_MONO AUDIO_CHANNEL_IN_STEREO"/>
+-                </devicePort>
+-                <devicePort tagName="Proxy In" type="AUDIO_DEVICE_IN_PROXY" role="source">
+-                    <profile name="" format="AUDIO_FORMAT_PCM_16_BIT"
+-                             samplingRates="8000 11025 16000 22050 32000 44100 48000 64000 88200 96000 128000 176400 192000"/>
+-                </devicePort>
+-                <devicePort tagName="IP In" type="AUDIO_DEVICE_IN_IP" role="source">
+-                    <profile name="" format="AUDIO_FORMAT_PCM_16_BIT"
+-                             samplingRates="8000 11025 16000 22050 32000 44100 48000 64000 88200 96000 128000 176400 192000"/>
+-                </devicePort>
+             </devicePorts>
+             <!-- route declaration, i.e. list all available sources for a given sink -->
+             <routes>
+                 <route type="mix" sink="Earpiece"
+-                       sources="primary output,raw,deep_buffer,direct_pcm,compressed_offload,voip_rx,mmap_no_irq_out,haptics output,Telephony Rx"/>
++                       sources="primary output,deep_buffer,direct_pcm,loop_back,mirror out,compressed_offload,mmap_no_irq_out,voip_rx,Telephony Rx,incall_music_uplink"/>
+                 <route type="mix" sink="Speaker"
+-                       sources="primary output,raw,deep_buffer,direct_pcm,compressed_offload,voip_rx,mmap_no_irq_out,haptics output,Telephony Rx"/>
++                       sources="primary output,deep_buffer,direct_pcm,loop_back,mirror out,compressed_offload,mmap_no_irq_out,voip_rx,Telephony Rx,incall_music_uplink"/>
+                 <route type="mix" sink="Wired Headset"
+-                       sources="primary output,raw,deep_buffer,direct_pcm,compressed_offload,voip_rx,mmap_no_irq_out,haptics output,Telephony Rx"/>
++                       sources="primary output,deep_buffer,direct_pcm,loop_back,mirror out,compressed_offload,mmap_no_irq_out,voip_rx,Telephony Rx,incall_music_uplink"/>
+                 <route type="mix" sink="Wired Headphones"
+-                       sources="primary output,raw,deep_buffer,direct_pcm,compressed_offload,voip_rx,mmap_no_irq_out,haptics output,Telephony Rx"/>
++                       sources="primary output,deep_buffer,direct_pcm,loop_back,mirror out,compressed_offload,mmap_no_irq_out,voip_rx,Telephony Rx,incall_music_uplink"/>
+                 <route type="mix" sink="Line"
+-                       sources="primary output,raw,deep_buffer,direct_pcm,compressed_offload,voip_rx,mmap_no_irq_out,haptics output,Telephony Rx"/>
++                       sources="primary output,deep_buffer,direct_pcm,loop_back,mirror out,compressed_offload,mmap_no_irq_out,voip_rx,Telephony Rx,incall_music_uplink"/>
+                 <route type="mix" sink="HDMI"
+-                       sources="primary output,raw,deep_buffer,direct_pcm,compressed_offload,voip_rx,haptics output,Telephony Rx"/>
++                       sources="primary output,deep_buffer,direct_pcm,loop_back,mirror out,compressed_offload,mmap_no_irq_out,voip_rx,Telephony Rx,incall_music_uplink"/>
+                 <route type="mix" sink="Proxy"
+-                       sources="primary output,deep_buffer,direct_pcm,compressed_offload,haptics output"/>
+-                <route type="mix" sink="IP out"
+-                       sources="primary output,deep_buffer,direct_pcm,compressed_offload,haptics output"/>
++                       sources="primary output,deep_buffer,direct_pcm,loop_back,mirror out,compressed_offload,incall_music_uplink"/>
+                 <route type="mix" sink="FM"
+                        sources="primary output"/>
+                 <route type="mix" sink="BT SCO"
+-                       sources="primary output,raw,deep_buffer,direct_pcm,compressed_offload,voip_rx,haptics output,spatial output,Telephony Rx"/>
++                       sources="primary output,deep_buffer,direct_pcm,loop_back,mirror out,compressed_offload,mmap_no_irq_out,voip_rx,spatial output,Telephony Rx,incall_music_uplink"/>
+                 <route type="mix" sink="BT SCO Headset"
+-                       sources="primary output,raw,deep_buffer,direct_pcm,compressed_offload,voip_rx,haptics output,spatial output,Telephony Rx"/>
+-                <route type="mix" sink="BT BLE Out"
+-                       sources="primary output,raw,mmap_no_irq_out,deep_buffer,direct_pcm,compressed_offload,voip_rx,haptics output,spatial output,Telephony Rx"/>
++                       sources="primary output,deep_buffer,direct_pcm,loop_back,mirror out,compressed_offload,mmap_no_irq_out,voip_rx,spatial output,Telephony Rx,incall_music_uplink"/>
+                 <route type="mix" sink="BT SCO Car Kit"
+-                       sources="primary output,raw,deep_buffer,direct_pcm,compressed_offload,voip_rx,haptics output,spatial output,Telephony Rx"/>
++                       sources="primary output,deep_buffer,direct_pcm,loop_back,mirror out,compressed_offload,mmap_no_irq_out,voip_rx,spatial output,Telephony Rx,incall_music_uplink"/>
+                 <route type="mix" sink="USB Device Out"
+-                       sources="primary output,raw,deep_buffer,direct_pcm,compressed_offload,voip_rx,mmap_no_irq_out,hifi_playback,haptics output,Telephony Rx"/>
++                       sources="primary output,deep_buffer,direct_pcm,loop_back,mirror out,compressed_offload,mmap_no_irq_out,voip_rx,hifi_playback,Telephony Rx,incall_music_uplink"/>
+                 <route type="mix" sink="USB Headset Out"
+-                       sources="primary output,raw,deep_buffer,direct_pcm,compressed_offload,voip_rx,mmap_no_irq_out,hifi_playback,haptics output,Telephony Rx"/>
++                       sources="primary output,deep_buffer,direct_pcm,loop_back,mirror out,compressed_offload,mmap_no_irq_out,voip_rx,hifi_playback,Telephony Rx,incall_music_uplink"/>
+                 <route type="mix" sink="Telephony Tx"
+                        sources="voice_tx,incall_music_uplink"/>
+                 <route type="mix" sink="voice_rx"
+                        sources="Telephony Rx"/>
+                 <route type="mix" sink="primary input"
+-                       sources="Built-In Mic,Built-In Back Mic,Wired Headset Mic,BT SCO Headset Mic,FM Tuner,Telephony Rx,A2DP In,Echo Reference,BLE In,Proxy In,IP In"/>
+-                <route type="mix" sink="compress-input"
+-                       sources="Built-In Mic,Built-In Back Mic,BT SCO Headset Mic,Wired Headset Mic,USB Device In,USB Headset In,BLE In,Proxy In,IP In"/>
++                       sources="Built-In Mic,Built-In Back Mic,Wired Headset Mic,BT SCO Headset Mic,FM Tuner,Telephony Rx,A2DP In,Echo Reference"/>
+                 <route type="mix" sink="usb_surround_sound"
+                        sources="USB Device In,USB Headset In"/>
+                 <route type="mix" sink="fast input"
+-                       sources="Built-In Mic,Built-In Back Mic,BT SCO Headset Mic,USB Device In,USB Headset In,Wired Headset Mic,Proxy In,IP In"/>
+-                <route type="mix" sink="fast_raw_input"
+-                       sources="Built-In Mic,Built-In Back Mic,BT SCO Headset Mic,USB Device In,USB Headset In,Wired Headset Mic,Proxy In,IP In"/>
++                       sources="Built-In Mic,Built-In Back Mic,BT SCO Headset Mic,USB Device In,USB Headset In,Wired Headset Mic"/>
+                 <route type="mix" sink="quad mic"
+                        sources="Built-In Mic,Built-In Back Mic,BT SCO Headset Mic,USB Device In,USB Headset In,Wired Headset Mic"/>
+                 <route type="mix" sink="voip_tx"
+-                       sources="Built-In Mic,Built-In Back Mic,BT SCO Headset Mic,USB Device In,USB Headset In,Wired Headset Mic,BLE In"/>
+-                <route type="mix" sink="record_24"
+-                       sources="Built-In Mic,Built-In Back Mic,Wired Headset Mic,A2DP In,BLE In"/>
+-                <route type="mix" sink="mmap_no_irq_in"
+                        sources="Built-In Mic,Built-In Back Mic,BT SCO Headset Mic,USB Device In,USB Headset In,Wired Headset Mic"/>
++                <route type="mix" sink="record_24"
++                       sources="Built-In Mic,Built-In Back Mic,Wired Headset Mic,A2DP In"/>
+                 <route type="mix" sink="BT A2DP Out"
+-                       sources="primary output,raw,deep_buffer,direct_pcm,compressed_offload,voip_rx,mmap_no_irq_out,haptics output,spatial output"/>
++                       sources="primary output,deep_buffer,direct_pcm,loop_back,mirror out,compressed_offload,voip_rx,spatial output"/>
+                 <route type="mix" sink="BT A2DP Headphones"
+-                       sources="primary output,raw,deep_buffer,direct_pcm,compressed_offload,voip_rx,mmap_no_irq_out,haptics output,spatial output"/>
++                       sources="primary output,deep_buffer,direct_pcm,loop_back,mirror out,compressed_offload,voip_rx,spatial output"/>
+                 <route type="mix" sink="BT A2DP Speaker"
+-                       sources="primary output,raw,deep_buffer,direct_pcm,compressed_offload,voip_rx,mmap_no_irq_out,haptics output"/>
+-                <route type="mix" sink="BT BLE Speaker"
+-                       sources="primary output,raw,mmap_no_irq_out,deep_buffer,direct_pcm,compressed_offload,voip_rx,haptics output"/>
+-                <route type="mix" sink="BT BLE Broadcast"
+-                       sources="primary output,deep_buffer,direct_pcm,compressed_offload"/>
+-                <route type="mix" sink="hifi_input" sources="USB Device In,USB Headset In" />
++                       sources="primary output,deep_buffer,direct_pcm,loop_back,mirror out,compressed_offload,voip_rx"/>
++                <route type="mix" sink="mmap_no_irq_in"
++                       sources="Built-In Mic,Built-In Back Mic,BT SCO Headset Mic,USB Device In,USB Headset In,Wired Headset Mic"/>
++                <route type="mix" sink="hifi_input" sources="USB Device In,USB Headset In"/>
+             </routes>
+ 
+         </module>
+ 
+-        <!-- A2DP Audio HAL -->
+-        <!-- <module name="a2dp" halVersion="2.0">
+-            <mixPorts>
+-                <mixPort name="a2dp input" role="sink">
+-                    <profile name="" format="AUDIO_FORMAT_PCM_16_BIT"
+-                             samplingRates="44100 48000" channelMasks="AUDIO_CHANNEL_IN_MONO AUDIO_CHANNEL_IN_STEREO"/>
+-                </mixPort>
+-            </mixPorts>
+-
+-            <devicePorts>
+-                <devicePort tagName="BT A2DP In" type="AUDIO_DEVICE_IN_BLUETOOTH_A2DP" role="source">
+-                    <profile name="" format="AUDIO_FORMAT_PCM_16_BIT"
+-                             samplingRates="44100 48000" channelMasks="AUDIO_CHANNEL_IN_MONO AUDIO_CHANNEL_IN_STEREO"/>
+-                </devicePort>
+-            </devicePorts>
+-
+-            <routes>
+-                <route type="mix" sink="a2dp input"
+-                       sources="BT A2DP In"/>
+-            </routes>
+-        </module> -->
+-
+         <!-- Usb Audio HAL -->
+         <module name="usb" halVersion="2.0">
+             <mixPorts>
+@@ -548,9 +462,6 @@ SPDX-License-Identifier: BSD-3-Clause-Clear
+         <!-- Remote Submix Audio HAL -->
+         <xi:include href="/vendor/etc/r_submix_audio_policy_configuration.xml"/>
+ 
+-        <!-- Bluetooth Audio HAL for hearing aid -->
+-        <xi:include href="/vendor/etc/bluetooth_qti_hearing_aid_audio_policy_configuration.xml"/>
+-
+     </modules>
+     <!-- End of Modules section -->
+ 

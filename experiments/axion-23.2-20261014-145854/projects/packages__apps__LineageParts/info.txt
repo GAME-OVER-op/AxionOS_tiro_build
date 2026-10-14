@@ -1,0 +1,21 @@
+REPO_PATH=packages/apps/LineageParts
+HEAD=d75f0b55521f8db0f0b41ead6901cb9e3e735091
+
+===== REMOTES =====
+axion	https://github.com/AxionAOSP/android_packages_apps_LineageParts (fetch)
+axion	https://github.com/AxionAOSP/android_packages_apps_LineageParts (push)
+
+===== BRANCHES =====
+* (no branch)                d75f0b5 LineageParts: Keep PartsUpdater related fields and classes
+  remotes/axion/lineage-23.2 d75f0b5 LineageParts: Keep PartsUpdater related fields and classes
+  remotes/m/lineage-23.2     -> axion/lineage-23.2
+
+===== STATUS =====
+ M res/values-ru/strings.xml
+ M res/values/arrays.xml
+ M res/values/strings.xml
+ M res/xml/livedisplay.xml
+ M src/org/lineageos/lineageparts/livedisplay/LiveDisplaySettings.java
+
+===== LOCAL-ONLY COMMITS =====
+

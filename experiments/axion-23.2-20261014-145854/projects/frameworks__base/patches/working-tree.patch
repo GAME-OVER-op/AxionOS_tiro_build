@@ -1,0 +1,309 @@
+diff --git a/packages/SystemUI/res/xml/qqs_header.xml b/packages/SystemUI/res/xml/qqs_header.xml
+index 50a388d0fa64a0834c73e6b42fc09834e4881e6b..49045a8fb370f674f423ae9ccd5dd323c3e6137f 100644
+--- a/packages/SystemUI/res/xml/qqs_header.xml
++++ b/packages/SystemUI/res/xml/qqs_header.xml
+@@ -29,9 +29,6 @@
+             app:layout_constraintStart_toStartOf="@id/begin_guide"
+             app:layout_constraintTop_toTopOf="parent"
+             app:layout_constraintBottom_toBottomOf="@id/qqs_header_bottom_guideline"
+-            app:layout_constraintEnd_toStartOf="@id/date"
+-            app:layout_constraintHorizontal_bias="0"
+-            app:layout_constraintHorizontal_chainStyle="packed"
+         />
+         <Transform
+             android:scaleX="1"
+@@ -48,8 +45,8 @@
+             app:layout_constrainedWidth="true"
+             app:layout_constraintStart_toEndOf="@id/clock"
+             app:layout_constraintEnd_toStartOf="@id/barrier"
+-            app:layout_constraintBaseline_toBaselineOf="@id/clock"
+             app:layout_constraintHorizontal_bias="0"
++            app:layout_constraintBaseline_toBaselineOf="@id/clock"
+         />
+     </Constraint>
+ 
+@@ -59,12 +56,9 @@
+             android:layout_width="wrap_content"
+             android:layout_height="@dimen/new_qs_header_non_clickable_element_height"
+             app:layout_constraintHeight_min="@dimen/new_qs_header_non_clickable_element_height"
+-            app:layout_constraintStart_toEndOf="@id/date"
+             app:layout_constraintEnd_toEndOf="@id/end_guide"
+             app:layout_constraintTop_toTopOf="parent"
+             app:layout_constraintBottom_toBottomOf="@id/qqs_header_bottom_guideline"
+-            app:layout_constraintHorizontal_bias="1"
+-            app:layout_constraintHorizontal_chainStyle="packed"
+             />
+     </Constraint>
+ 
+@@ -87,11 +81,9 @@
+         <Layout
+             android:layout_width="wrap_content"
+             android:layout_height="@dimen/large_screen_shade_header_min_height"
+-            app:layout_constraintStart_toEndOf="@id/date"
+             app:layout_constraintEnd_toEndOf="@id/end_guide"
+             app:layout_constraintTop_toTopOf="parent"
+             app:layout_constraintBottom_toBottomOf="@id/qqs_header_bottom_guideline"
+-            app:layout_constraintHorizontal_bias="1"
+         />
+     </Constraint>
+ </ConstraintSet>
+\ No newline at end of file
+diff --git a/packages/SystemUI/src/com/android/systemui/shade/CombinedShadeHeadersConstraintManagerImpl.kt b/packages/SystemUI/src/com/android/systemui/shade/CombinedShadeHeadersConstraintManagerImpl.kt
+index b2e473685daa4a09da5ad1e9493950c05d987bec..55cfd293d3f44454590e03e1db6f0f7555e35dd4 100644
+--- a/packages/SystemUI/src/com/android/systemui/shade/CombinedShadeHeadersConstraintManagerImpl.kt
++++ b/packages/SystemUI/src/com/android/systemui/shade/CombinedShadeHeadersConstraintManagerImpl.kt
+@@ -47,8 +47,6 @@ object CombinedShadeHeadersConstraintManagerImpl : CombinedShadeHeadersConstrain
+                     R.id.shade_header_system_icons,
+                     R.id.privacy_container
+                 )
+-                connect(R.id.shade_header_system_icons, ConstraintSet.START, R.id.date,
+-                    ConstraintSet.END)
+                 connect(R.id.privacy_container, ConstraintSet.START, R.id.date, ConstraintSet.END)
+                 constrainWidth(R.id.shade_header_system_icons, ViewGroup.LayoutParams.WRAP_CONTENT)
+                 constrainedWidth(R.id.date, true)
+@@ -83,12 +81,6 @@ object CombinedShadeHeadersConstraintManagerImpl : CombinedShadeHeadersConstrain
+                 setGuidelineBegin(centerStart, offsetFromEdge)
+                 setGuidelineEnd(centerEnd, offsetFromEdge)
+                 connect(R.id.date, ConstraintSet.END, centerStart, ConstraintSet.START)
+-                connect(
+-                    R.id.shade_header_system_icons,
+-                    ConstraintSet.START,
+-                    centerEnd,
+-                    ConstraintSet.END
+-                )
+                 connect(
+                     R.id.privacy_container,
+                     ConstraintSet.START,
+diff --git a/services/core/java/com/android/server/display/brightness/HbmService.java b/services/core/java/com/android/server/display/brightness/HbmService.java
+index 164d4cdaea3441d840500aba5135e5787cc05846..21a60c325f9d140c161ba594cd3ce6e5c9ecdbd0 100644
+--- a/services/core/java/com/android/server/display/brightness/HbmService.java
++++ b/services/core/java/com/android/server/display/brightness/HbmService.java
+@@ -41,7 +41,9 @@ public class HbmService extends SystemService implements SensorEventListener {
+ 
+     private static final String TAG = "HbmService";
+ 
+-    private static final String HBM_NODE = SystemProperties.get("persist.sys.hbmservice_file");
++    private static final String HBM_NODE = SystemProperties.get(
++            "persist.sys.ax_hbm_file",
++            SystemProperties.get("persist.sys.hbmservice_file"));
+     private static final String HBM_OFF = "0";
+     private static final String HBM_ON  = "1";
+ 
+@@ -55,14 +57,17 @@ public class HbmService extends SystemService implements SensorEventListener {
+     private static final String KEY_AUTO_HBM_ENABLED = "auto_hbm_enabled";
+     private static final String KEY_AUTO_HBM_LUX_ON  = "auto_hbm_lux_on";
+     private static final String KEY_AUTO_HBM_LUX_OFF = "auto_hbm_lux_off";
++    private static final String KEY_FORCE_HBM_ENABLED = "force_hbm_enabled";
+ 
+     private static final int AVG_SAMPLE_COUNT = 5;
+     private static final long SENSOR_DEBOUNCE_MS = 3000;
++    private static final long FORCED_HBM_WATCHDOG_MS = 500;
+ 
+     private static final int MSG_SENSOR_CHANGED = 1;
+     private static final int MSG_SETTINGS_CHANGED = 2;
+     private static final int MSG_SCREEN_STATE_CHANGED = 3;
+     private static final int MSG_BRIGHTNESS_CHANGED = 4;
++    private static final int MSG_ENFORCE_FORCED_HBM = 5;
+ 
+     public static final int GAMMA_SPACE_MIN = 0;
+     public static final int GAMMA_SPACE_MAX = 65535;
+@@ -79,8 +84,9 @@ public class HbmService extends SystemService implements SensorEventListener {
+     private HbmHandler mHandler;
+ 
+     private Sensor mLightSensor;
+-    private boolean mScreenOn = true;
++    private boolean mScreenOn;
+     private boolean mAutoEnabled = false;
++    private boolean mForceEnabled = false;
+ 
+     private float mLuxThresholdOn = DEFAULT_LUX_THRESHOLD_HBM;
+     private float mLuxThresholdOff = DEFAULT_LUX_THRESHOLD_OFF;
+@@ -113,15 +119,16 @@ public class HbmService extends SystemService implements SensorEventListener {
+     public void onBootPhase(int phase) {
+         if (phase != PHASE_BOOT_COMPLETED) return;
+ 
+-        if (mLightSensor == null) {
+-            logger("No light sensor found, HbmService disabled");
+-            return;
+-        }
+-
+         startHandlerThread();
++        mScreenOn = mContext.getSystemService(PowerManager.class).isInteractive();
+         observeSettings();
++        registerScreenReceiver();
+         updateLightThresholds();
+         updateState();
++
++        if (mLightSensor == null) {
++            logger("No light sensor found, automatic HBM disabled");
++        }
+     }
+ 
+     private void startHandlerThread() {
+@@ -138,8 +145,8 @@ public class HbmService extends SystemService implements SensorEventListener {
+                 if (uri == null) return;
+                 String key = uri.getLastPathSegment();
+                 if (KEY_AUTO_HBM_ENABLED.equals(key) || KEY_AUTO_HBM_LUX_ON.equals(key) ||
+-                    KEY_AUTO_HBM_LUX_OFF.equals(key)) {
+-                    mHandler.obtainMessage(MSG_SETTINGS_CHANGED).sendToTarget();
++                    KEY_AUTO_HBM_LUX_OFF.equals(key) || KEY_FORCE_HBM_ENABLED.equals(key)) {
++                    mHandler.obtainMessage(MSG_SETTINGS_CHANGED, key).sendToTarget();
+                 } else if (Settings.System.SCREEN_BRIGHTNESS.equals(key)) {
+                     mHandler.obtainMessage(MSG_BRIGHTNESS_CHANGED).sendToTarget();
+                 }
+@@ -149,6 +156,7 @@ public class HbmService extends SystemService implements SensorEventListener {
+         resolver.registerContentObserver(Settings.Secure.getUriFor(KEY_AUTO_HBM_ENABLED), false, mSettingsObserver);
+         resolver.registerContentObserver(Settings.Secure.getUriFor(KEY_AUTO_HBM_LUX_ON), false, mSettingsObserver);
+         resolver.registerContentObserver(Settings.Secure.getUriFor(KEY_AUTO_HBM_LUX_OFF), false, mSettingsObserver);
++        resolver.registerContentObserver(Settings.Secure.getUriFor(KEY_FORCE_HBM_ENABLED), false, mSettingsObserver);
+         resolver.registerContentObserver(Settings.System.getUriFor(Settings.System.SCREEN_BRIGHTNESS), false, mSettingsObserver);
+     }
+ 
+@@ -171,12 +179,33 @@ public class HbmService extends SystemService implements SensorEventListener {
+     }
+ 
+     private void updateState() {
+-        boolean prevAutoEnabled = mAutoEnabled;
++        boolean wasAutoEnabled = mAutoEnabled;
++        boolean wasForceEnabled = mForceEnabled;
+         mAutoEnabled = Settings.Secure.getInt
+             (mContext.getContentResolver(), KEY_AUTO_HBM_ENABLED, 0) == 1;
++        mForceEnabled = Settings.Secure.getInt
++            (mContext.getContentResolver(), KEY_FORCE_HBM_ENABLED, 0) == 1;
+ 
+-        if (mAutoEnabled != prevAutoEnabled) {
+-            updateSensors();
++        updateSensors();
++
++        if (mForceEnabled) {
++            if (mScreenOn) {
++                enforceForcedHbm();
++            } else {
++                stopForcedHbmWatchdog();
++                disableHbm();
++            }
++        } else {
++            stopForcedHbmWatchdog();
++            if (wasForceEnabled) {
++                disableHbm();
++            }
++            if (!mAutoEnabled) {
++                disableHbm();
++            }
++            if (mAutoEnabled && mScreenOn && (wasForceEnabled || !wasAutoEnabled)) {
++                updateHbmMode();
++            }
+         }
+     }
+ 
+@@ -202,12 +231,11 @@ public class HbmService extends SystemService implements SensorEventListener {
+     }
+ 
+     private void updateSensors() {
+-        boolean shouldListen = mScreenOn && mAutoEnabled && mLightSensor != null;
++        boolean shouldListen = mScreenOn && mAutoEnabled && !mForceEnabled && mLightSensor != null;
+ 
+         if (shouldListen && !mSensorRegistered) {
+             logger("Registering light sensor listener for HBM");
+             mSensorManager.registerListener(this, mLightSensor, SensorManager.SENSOR_DELAY_NORMAL, mHandler);
+-            registerScreenReceiver();
+             mSensorRegistered = true;
+         } else if (!shouldListen && mSensorRegistered) {
+             logger("Unregistering light sensor listener for HBM");
+@@ -218,6 +246,8 @@ public class HbmService extends SystemService implements SensorEventListener {
+     }
+ 
+     private void handleSensorChanged() {
++        if (mForceEnabled) return;
++
+         if (getBrightnessPercent() < HBM_MIN_BRIGHTNESS_PERCENT) {
+             write(HBM_OFF);
+             return;
+@@ -235,11 +265,12 @@ public class HbmService extends SystemService implements SensorEventListener {
+         float avgLux = sum / count;
+ 
+         mLastSensorUpdateTime = now;
++        mCurrentLux = avgLux;
+         updateHbmMode();
+     }
+ 
+     private void handleSettingsChanged(String key) {
+-        if (KEY_AUTO_HBM_ENABLED.equals(key)) {
++        if (KEY_AUTO_HBM_ENABLED.equals(key) || KEY_FORCE_HBM_ENABLED.equals(key)) {
+             updateState();
+         } else if (KEY_AUTO_HBM_LUX_ON.equals(key) || KEY_AUTO_HBM_LUX_OFF.equals(key)) {
+             updateLightThresholds();
+@@ -248,10 +279,27 @@ public class HbmService extends SystemService implements SensorEventListener {
+ 
+     private void handleScreenStateChanged(boolean screenOn) {
+         mScreenOn = screenOn;
+-        updateSensors();
++        if (mForceEnabled) {
++            if (screenOn) {
++                enforceForcedHbm();
++            } else {
++                stopForcedHbmWatchdog();
++                disableHbm();
++            }
++        } else {
++            updateSensors();
++            if (!screenOn) {
++                disableHbm();
++            }
++        }
+     }
+ 
+     private void updateHbmMode() {
++        if (mForceEnabled) {
++            enforceForcedHbm();
++            return;
++        }
++
+         final float lux = mCurrentLux;
+         boolean hmbOn = isHbmEnabled();
+         if (!hmbOn && lux >= mLuxThresholdOn) {
+@@ -285,6 +333,23 @@ public class HbmService extends SystemService implements SensorEventListener {
+         }
+     }
+ 
++    private void enforceForcedHbm() {
++        mHandler.removeMessages(MSG_ENFORCE_FORCED_HBM);
++        if (!mForceEnabled || !mScreenOn) return;
++
++        if (!isHbmEnabled()) {
++            write(HBM_ON);
++            logger("Restored forced HBM");
++        }
++        mHandler.sendEmptyMessageDelayed(MSG_ENFORCE_FORCED_HBM, FORCED_HBM_WATCHDOG_MS);
++    }
++
++    private void stopForcedHbmWatchdog() {
++        if (mHandler != null) {
++            mHandler.removeMessages(MSG_ENFORCE_FORCED_HBM);
++        }
++    }
++
+     private boolean isHbmEnabled() {
+         try {
+             File node = FileUtils.newFileOrNull(HBM_NODE);
+@@ -298,6 +363,10 @@ public class HbmService extends SystemService implements SensorEventListener {
+     }
+ 
+     private void write(String value) {
++        if (HBM_NODE.isEmpty()) {
++            logger("HBM node property is empty");
++            return;
++        }
+         try {
+             FileUtils.stringToFile(HBM_NODE, value);
+         } catch (Exception e) {
+@@ -358,6 +427,9 @@ public class HbmService extends SystemService implements SensorEventListener {
+                 case MSG_SCREEN_STATE_CHANGED:
+                     mService.handleScreenStateChanged((Boolean) msg.obj);
+                     break;
++                case MSG_ENFORCE_FORCED_HBM:
++                    mService.enforceForcedHbm();
++                    break;
+             }
+         }
+     }

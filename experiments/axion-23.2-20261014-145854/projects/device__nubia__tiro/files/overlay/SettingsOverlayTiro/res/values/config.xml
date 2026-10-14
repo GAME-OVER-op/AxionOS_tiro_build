@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- REDMAGIC 9 Pro has an under-display camera: hide only the UI option. -->
+    <bool name="config_show_display_cutout_emulation">false</bool>
+</resources>

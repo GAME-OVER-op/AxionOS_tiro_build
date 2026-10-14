@@ -1,0 +1,20 @@
+REPO_PATH=vendor/nubia/tiro
+HEAD=573dd0a30f59bf70f5615e648bcffc5bfe91da41
+
+===== REMOTES =====
+github-nubia	https://github.com/nubia-sm8650-devs/proprietary_vendor_nubia_tiro (fetch)
+github-nubia	https://github.com/nubia-sm8650-devs/proprietary_vendor_nubia_tiro (push)
+
+===== BRANCHES =====
+* (no branch)                       573dd0a tiro: Update blobs to REDMAGICOS10.0.7MR1_GB
+  remotes/github-nubia/lineage-23.2 573dd0a tiro: Update blobs to REDMAGICOS10.0.7MR1_GB
+  remotes/m/lineage-23.2            -> github-nubia/lineage-23.2
+
+===== STATUS =====
+ M Android.mk
+ M BoardConfigVendor.mk
+?? dtsx/
+?? radio/abl.img
+
+===== LOCAL-ONLY COMMITS =====
+

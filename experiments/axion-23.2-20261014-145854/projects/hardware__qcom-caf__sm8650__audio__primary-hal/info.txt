@@ -1,0 +1,19 @@
+REPO_PATH=hardware/qcom-caf/sm8650/audio/primary-hal
+HEAD=2aa541f626ecc029fce24f3882aaee84c11fb161
+
+===== REMOTES =====
+github	https://github.com/LineageOS/android_hardware_qcom_audio-ar (fetch)
+github	https://github.com/LineageOS/android_hardware_qcom_audio-ar (push)
+
+===== BRANCHES =====
+* (no branch)                            2aa541f62 Merge tag 'AUDIO.LA.9.0.r1-08900-lanai.0' into staging/lineage-23.2_merge-AUDIO.LA.9.0.r1-08900-lanai.0
+  remotes/github/lineage-23.2-caf-sm8650 2aa541f62 Merge tag 'AUDIO.LA.9.0.r1-08900-lanai.0' into staging/lineage-23.2_merge-AUDIO.LA.9.0.r1-08900-lanai.0
+  remotes/m/lineage-23.2                 -> github/lineage-23.2-caf-sm8650
+
+===== STATUS =====
+ M configs/pineapple/audio_effects.conf
+ M configs/pineapple/audio_effects.xml
+ M configs/pineapple/audio_policy_configuration.xml
+
+===== LOCAL-ONLY COMMITS =====
+

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     SPDX-FileCopyrightText: 2025-2026 GAME-OVER-op
+     SPDX-License-Identifier: Apache-2.0
+-->
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <SwitchPreferenceCompat
+        android:key="trigger_left"
+        android:title="@string/trigger_left_title" />
+    <SwitchPreferenceCompat
+        android:key="trigger_right"
+        android:title="@string/trigger_right_title" />
+    <Preference
+        android:key="trigger_calibrate"
+        android:title="@string/trigger_calibrate_title"
+        android:summary="@string/trigger_calibrate_summary" />
+</PreferenceScreen>

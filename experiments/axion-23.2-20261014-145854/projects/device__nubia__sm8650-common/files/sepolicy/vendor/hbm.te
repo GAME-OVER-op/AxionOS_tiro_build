@@ -1,0 +1,3 @@
+# Allow the framework HBM controller to use the existing Lineage
+# sysfs_livedisplay_tuneable label for the panel HBM node.
+allow system_server sysfs_livedisplay_tuneable:file rw_file_perms;

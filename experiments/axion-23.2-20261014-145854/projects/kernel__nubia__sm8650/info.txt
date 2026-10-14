@@ -1,0 +1,23 @@
+REPO_PATH=kernel/nubia/sm8650
+HEAD=e29c60a9a80dda940bd418e3d1773d10c2815fa0
+
+===== REMOTES =====
+github-nubia	https://github.com/nubia-sm8650-devs/android_kernel_nubia_sm8650 (fetch)
+github-nubia	https://github.com/nubia-sm8650-devs/android_kernel_nubia_sm8650 (push)
+
+===== BRANCHES =====
+* local/axion-tiro-23.2             e29c60a9a80d input: gpio-keys: Don't simulate events on suspend if gpio is oneshot
+  remotes/github-nubia/lineage-23.2 e29c60a9a80d input: gpio-keys: Don't simulate events on suspend if gpio is oneshot
+  remotes/m/lineage-23.2            -> github-nubia/lineage-23.2
+
+===== STATUS =====
+ M arch/arm64/configs/oem/boards/tiro_diff.config
+ M drivers/cpufreq/cpufreq.c
+ M drivers/thermal/Kconfig
+ M drivers/thermal/thermal_core.h
+ M drivers/thermal/thermal_helpers.c
+ M drivers/thermal/thermal_sysfs.c
+ M fs/pstore/ram.c
+
+===== LOCAL-ONLY COMMITS =====
+

@@ -1,0 +1,249 @@
+diff --git a/res/values-ru/strings.xml b/res/values-ru/strings.xml
+index 4602066714981ff1e66d2f27a4e846fdfe92e658..5e7c63355333222c49a7ef4223307d0ab0e05ff2 100644
+--- a/res/values-ru/strings.xml
++++ b/res/values-ru/strings.xml
+@@ -540,4 +540,10 @@
+     <string name="sms_security_check_limit_summary">Запрашивать подтверждение при отправке более %s сообщений в минуту</string>
+     <string name="sms_security_check_limit_summary_none">Приложениям запрещено отправлять сообщения без подтверждения</string>
+     <string name="sms_security_check_limit_always_confirm">Подтверждать всегда</string>
++    <string name="tiro_hbm_mode_title">Режим высокой яркости</string>
++    <string name="tiro_hbm_lux_on_title">Порог включения (люкс)</string>
++    <string name="tiro_hbm_lux_off_title">Порог выключения (люкс)</string>
++    <string name="tiro_hbm_off">Выключено</string>
++    <string name="tiro_hbm_auto">Автоматически</string>
++    <string name="tiro_hbm_forced">Принудительно</string>
+ </resources>
+diff --git a/res/values/arrays.xml b/res/values/arrays.xml
+index 099546d0040e58083083080c88216ec9c90fd004..bf00b60cf15792664b925c14621ce4fda0d6bbad 100644
+--- a/res/values/arrays.xml
++++ b/res/values/arrays.xml
+@@ -519,4 +519,12 @@
+         <item>1</item>
+         <item>0</item>
+     </string-array>
++    <string-array name="tiro_hbm_mode_entries">
++        <item>@string/tiro_hbm_off</item>
++        <item>@string/tiro_hbm_auto</item>
++        <item>@string/tiro_hbm_forced</item>
++    </string-array>
++    <string-array name="tiro_hbm_mode_values" translatable="false">
++        <item>off</item><item>auto</item><item>forced</item>
++    </string-array>
+ </resources>
+diff --git a/res/values/strings.xml b/res/values/strings.xml
+index b077625dcfc3c87539905a0d245b9b4f19017858..a81ce6c48cdd5d9f834b62ad02fc5c48d9b96349 100644
+--- a/res/values/strings.xml
++++ b/res/values/strings.xml
+@@ -703,4 +703,10 @@
+     <string name="sms_security_check_limit_summary">Apps can send %s messages in 1 minute before requiring confirmation</string>
+     <string name="sms_security_check_limit_summary_none">Apps are not allowed to send any messages without confirmation</string>
+     <string name="sms_security_check_limit_always_confirm">Always confirm</string>
++    <string name="tiro_hbm_mode_title">High brightness mode</string>
++    <string name="tiro_hbm_lux_on_title">Enable at ambient light (lux)</string>
++    <string name="tiro_hbm_lux_off_title">Disable below ambient light (lux)</string>
++    <string name="tiro_hbm_off">Off</string>
++    <string name="tiro_hbm_auto">Automatic</string>
++    <string name="tiro_hbm_forced">Forced</string>
+ </resources>
+diff --git a/res/xml/livedisplay.xml b/res/xml/livedisplay.xml
+index 84ef88afe78dfaef71b118f923389dca06973373..84d345fb2ecedde8ef3f55f02d9e01343274184d 100644
+--- a/res/xml/livedisplay.xml
++++ b/res/xml/livedisplay.xml
+@@ -32,6 +32,25 @@
+             android:summary="@string/live_display_outdoor_mode_summary"
+             android:defaultValue="@*lineageos.platform:bool/config_defaultAutoOutdoorMode" />
+ 
++    <!-- Tiro owns HBM through Axion HbmService. All controls write its Secure
++         settings; the LiveDisplay sunlight HAL must remain disabled on Tiro. -->
++    <ListPreference
++            android:key="tiro_hbm_mode"
++            android:title="@string/tiro_hbm_mode_title"
++            android:entries="@array/tiro_hbm_mode_entries"
++            android:entryValues="@array/tiro_hbm_mode_values"
++            android:persistent="false" />
++
++    <SeekBarPreference
++            android:key="tiro_hbm_lux_on"
++            android:title="@string/tiro_hbm_lux_on_title"
++            android:persistent="false" />
++
++    <SeekBarPreference
++            android:key="tiro_hbm_lux_off"
++            android:title="@string/tiro_hbm_lux_off_title"
++            android:persistent="false" />
++
+     <!-- Anti flicker mode / DC dimming -->
+     <lineageos.preference.LineageSystemSettingSwitchPreference
+             android:key="display_anti_flicker"
+diff --git a/src/org/lineageos/lineageparts/livedisplay/LiveDisplaySettings.java b/src/org/lineageos/lineageparts/livedisplay/LiveDisplaySettings.java
+index 0c60c2f7bf424209428291f2efcddbf11e3fe793..e893b0c5167efde528224261367a7c98a76cb0a5 100644
+--- a/src/org/lineageos/lineageparts/livedisplay/LiveDisplaySettings.java
++++ b/src/org/lineageos/lineageparts/livedisplay/LiveDisplaySettings.java
+@@ -21,6 +21,9 @@ import android.content.Context;
+ import android.content.res.Resources;
+ import android.hardware.display.ColorDisplayManager;
+ import android.net.Uri;
++import android.os.Build;
++import android.provider.Settings;
++import android.os.SystemProperties;
+ import android.os.Bundle;
+ import android.text.TextUtils;
+ import android.util.ArraySet;
+@@ -30,6 +33,7 @@ import androidx.preference.ListPreference;
+ import androidx.preference.Preference;
+ import androidx.preference.PreferenceCategory;
+ import androidx.preference.PreferenceScreen;
++import androidx.preference.SeekBarPreference;
+ import androidx.preference.SwitchPreferenceCompat;
+ 
+ import com.android.internal.util.ArrayUtils;
+@@ -70,6 +74,25 @@ public class LiveDisplaySettings extends SettingsPreferenceFragment implements S
+     private static final String KEY_LIVE_DISPLAY_COLOR_ENHANCE = "display_color_enhance";
+     private static final String KEY_LIVE_DISPLAY_TEMPERATURE = "live_display_color_temperature";
+ 
++    private static final String KEY_TIRO_HBM_MODE = "tiro_hbm_mode";
++    private static final String KEY_TIRO_HBM_LUX_ON = "tiro_hbm_lux_on";
++    private static final String KEY_TIRO_HBM_LUX_OFF = "tiro_hbm_lux_off";
++    private static final String HBM_AUTO = "auto_hbm_enabled";
++    private static final String HBM_FORCE = "force_hbm_enabled";
++    private static final String HBM_LUX_ON = "auto_hbm_lux_on";
++    private static final String HBM_LUX_OFF = "auto_hbm_lux_off";
++
++    private ListPreference mTiroHbmMode;
++    private SeekBarPreference mTiroLuxOn;
++    private SeekBarPreference mTiroLuxOff;
++
++    private static boolean supportsTiroHbm() {
++        // Never expose the native Tiro panel node controls on other devices.
++        return "tiro".equals(Build.DEVICE) && !SystemProperties.get(
++                "persist.sys.ax_hbm_file",
++                SystemProperties.get("persist.sys.hbmservice_file", "")).isEmpty();
++    }
++
+     private static final String KEY_DISPLAY_COLOR = "color_calibration";
+     private static final String KEY_PICTURE_ADJUSTMENT = "picture_adjustment";
+ 
+@@ -110,6 +133,7 @@ public class LiveDisplaySettings extends SettingsPreferenceFragment implements S
+         PreferenceScreen liveDisplayPrefs = findPreference(KEY_SCREEN_LIVE_DISPLAY);
+ 
+         PreferenceCategory advancedPrefs = findPreference(KEY_CATEGORY_ADVANCED);
++        initTiroHbm(liveDisplayPrefs);
+ 
+         int adaptiveMode = mLiveDisplayManager.getMode();
+ 
+@@ -223,6 +247,7 @@ public class LiveDisplaySettings extends SettingsPreferenceFragment implements S
+     @Override
+     public void onResume() {
+         super.onResume();
++        refreshTiroHbm();
+         updateModeSummary();
+         updateTemperatureSummary();
+         updateReadingModeStatus();
+@@ -236,6 +261,59 @@ public class LiveDisplaySettings extends SettingsPreferenceFragment implements S
+         SettingsHelper.get(getActivity()).stopWatching(this);
+     }
+ 
++    private void initTiroHbm(PreferenceScreen screen) {
++        mTiroHbmMode = findPreference(KEY_TIRO_HBM_MODE);
++        mTiroLuxOn = findPreference(KEY_TIRO_HBM_LUX_ON);
++        mTiroLuxOff = findPreference(KEY_TIRO_HBM_LUX_OFF);
++        if (!supportsTiroHbm()) {
++            if (screen != null) {
++                if (mTiroHbmMode != null) screen.removePreference(mTiroHbmMode);
++                if (mTiroLuxOn != null) screen.removePreference(mTiroLuxOn);
++                if (mTiroLuxOff != null) screen.removePreference(mTiroLuxOff);
++            }
++            mTiroHbmMode = null;
++            mTiroLuxOn = null;
++            mTiroLuxOff = null;
++            return;
++        }
++        if (mTiroHbmMode != null) mTiroHbmMode.setOnPreferenceChangeListener(this);
++        if (mTiroLuxOn != null) {
++            mTiroLuxOn.setMin(5500);
++            mTiroLuxOn.setMax(120000);
++            mTiroLuxOn.setSeekBarIncrement(500);
++            mTiroLuxOn.setShowSeekBarValue(true);
++            mTiroLuxOn.setOnPreferenceChangeListener(this);
++        }
++        if (mTiroLuxOff != null) {
++            mTiroLuxOff.setMin(5000);
++            mTiroLuxOff.setMax(119500);
++            mTiroLuxOff.setSeekBarIncrement(500);
++            mTiroLuxOff.setShowSeekBarValue(true);
++            mTiroLuxOff.setOnPreferenceChangeListener(this);
++        }
++        refreshTiroHbm();
++    }
++
++    private void refreshTiroHbm() {
++        if (mTiroHbmMode == null) return;
++        final boolean forced = Settings.Secure.getInt(
++                requireContext().getContentResolver(), HBM_FORCE, 0) == 1;
++        final boolean auto = Settings.Secure.getInt(
++                requireContext().getContentResolver(), HBM_AUTO, 0) == 1;
++        mTiroHbmMode.setValue(forced ? "forced" : auto ? "auto" : "off");
++        mTiroHbmMode.setSummary(mTiroHbmMode.getEntry());
++        if (mTiroLuxOn != null) {
++            mTiroLuxOn.setVisible(auto && !forced);
++            mTiroLuxOn.setValue(Settings.Secure.getInt(
++                    requireContext().getContentResolver(), HBM_LUX_ON, 110000));
++        }
++        if (mTiroLuxOff != null) {
++            mTiroLuxOff.setVisible(auto && !forced);
++            mTiroLuxOff.setValue(Settings.Secure.getInt(
++                    requireContext().getContentResolver(), HBM_LUX_OFF, 20000));
++        }
++    }
++
+     private void updateModeSummary() {
+         int mode = mLiveDisplayManager.getMode();
+ 
+@@ -274,7 +352,34 @@ public class LiveDisplaySettings extends SettingsPreferenceFragment implements S
+ 
+     @Override
+     public boolean onPreferenceChange(Preference preference, Object objValue) {
+-        if (preference == mLiveDisplay) {
++        if (preference == mTiroHbmMode) {
++            final String choice = (String) objValue;
++            Settings.Secure.putInt(requireContext().getContentResolver(), HBM_FORCE,
++                    "forced".equals(choice) ? 1 : 0);
++            Settings.Secure.putInt(requireContext().getContentResolver(), HBM_AUTO,
++                    "auto".equals(choice) ? 1 : 0);
++            refreshTiroHbm();
++            return true;
++        } else if (preference == mTiroLuxOn || preference == mTiroLuxOff) {
++            final int value = (Integer) objValue;
++            if (preference == mTiroLuxOn) {
++                final int luxOn = Math.max(5500, Math.min(value, 120000));
++                Settings.Secure.putInt(requireContext().getContentResolver(), HBM_LUX_ON, luxOn);
++                final int luxOff = Settings.Secure.getInt(
++                        requireContext().getContentResolver(), HBM_LUX_OFF, 20000);
++                if (luxOff >= luxOn) {
++                    Settings.Secure.putInt(requireContext().getContentResolver(), HBM_LUX_OFF,
++                            Math.max(5000, luxOn - 500));
++                }
++            } else {
++                final int on = Settings.Secure.getInt(
++                        requireContext().getContentResolver(), HBM_LUX_ON, 110000);
++                Settings.Secure.putInt(requireContext().getContentResolver(), HBM_LUX_OFF,
++                        Math.max(5000, Math.min(value, on - 500)));
++            }
++            refreshTiroHbm();
++            return true;
++        } else if (preference == mLiveDisplay) {
+             mLiveDisplayManager.setMode(Integer.parseInt((String)objValue));
+         } else if (preference == mReadingMode) {
+             mHardware.set(LineageHardwareManager.FEATURE_READING_ENHANCEMENT, (Boolean) objValue);
+@@ -336,6 +441,11 @@ public class LiveDisplaySettings extends SettingsPreferenceFragment implements S
+                 result.add(KEY_LIVE_DISPLAY_ANTI_FLICKER);
+             }
+ 
++            if (!supportsTiroHbm()) {
++                result.add(KEY_TIRO_HBM_MODE);
++                result.add(KEY_TIRO_HBM_LUX_ON);
++                result.add(KEY_TIRO_HBM_LUX_OFF);
++            }
+             return result;
+         }
+     };

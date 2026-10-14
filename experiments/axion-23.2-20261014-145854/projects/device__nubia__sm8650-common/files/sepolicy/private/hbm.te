@@ -1,0 +1,3 @@
+# The actual HBM node is owned by system_server. NubiaParts only changes
+# Settings.Secure, so it intentionally gets no direct sysfs access.
+# HBM sysfs is labeled by Lineage vendor policy; the allow rule lives in ../vendor/hbm.te.

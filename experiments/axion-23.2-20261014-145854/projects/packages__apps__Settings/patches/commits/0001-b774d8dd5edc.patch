@@ -1,0 +1,12 @@
+commit b774d8dd5edca7e4a8676d4532b1d764ec0636db
+Author:     ggover <ggover@localhost>
+AuthorDate: Mon Oct 12 21:44:07 2026 +0000
+Commit:     ggover <ggover@localhost>
+CommitDate: Mon Oct 12 21:44:07 2026 +0000
+
+    Open maintainer GitHub profile from About phone
+    
+    Change-Id: Idc1ab556ccff5addf5e20abf5facd3d1739db981
+
+ .../android/settings/deviceinfo/axion/AxionAboutActivity.kt    | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)

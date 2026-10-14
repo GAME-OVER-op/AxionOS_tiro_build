@@ -1,0 +1,11 @@
+Snapshot: 20261014-145854
+Workspace: /mnt/axion-build/axion-tiro-23.2/source
+
+===== MANIFEST =====
+origin	https://github.com/AxionAOSP/android.git (fetch)
+origin	https://github.com/AxionAOSP/android.git (push)
+abbb825 (HEAD -> default, origin/lineage-23.2, m/lineage-23.2) adding jvmcache prebuilts dep
+
+===== DISK =====
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/sdb2       621G  339G  282G  55% /mnt/axion-build

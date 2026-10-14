@@ -1,0 +1,43 @@
+diff --git a/src/com/android/axion/axionparts/ui/screens/PerformanceScreen.kt b/src/com/android/axion/axionparts/ui/screens/PerformanceScreen.kt
+index c18f400a186c967c8eb2de0e6403dc59418634fd..f0c0bfef23f497f4f41ac6a815fff1c21d6a0084 100644
+--- a/src/com/android/axion/axionparts/ui/screens/PerformanceScreen.kt
++++ b/src/com/android/axion/axionparts/ui/screens/PerformanceScreen.kt
+@@ -87,6 +87,13 @@ private fun PerformanceContent(
+         SystemProperties.getBoolean("persist.sys.ax_rp_supp", false)
+     }
+ 
++    val kernelManagerSupported = remember {
++        SystemProperties.getBoolean(
++            "ro.axion.kernel_manager.supported",
++            true,
++        )
++    }
++
+     Column(
+         modifier =
+             modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)
+@@ -135,6 +142,7 @@ private fun PerformanceContent(
+             modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Max),
+             horizontalArrangement = Arrangement.spacedBy(12.dp),
+         ) {
++            if (kernelManagerSupported) {
+             FeatureCard(
+                 title = stringResource(R.string.kernel_manager),
+                 summary = stringResource(R.string.kernel_manager_summary),
+@@ -149,6 +157,7 @@ private fun PerformanceContent(
+                     modifier = Modifier.size(36.dp),
+                 )
+             }
++            }
+             if (ramPlusSupported) {
+                 FeatureCard(
+                     title = stringResource(R.string.ram_plus),
+@@ -164,7 +173,7 @@ private fun PerformanceContent(
+                         modifier = Modifier.size(36.dp),
+                     )
+                 }
+-            } else {
++            } else if (kernelManagerSupported) {
+                 Spacer(modifier = Modifier.weight(1f))
+             }
+         }

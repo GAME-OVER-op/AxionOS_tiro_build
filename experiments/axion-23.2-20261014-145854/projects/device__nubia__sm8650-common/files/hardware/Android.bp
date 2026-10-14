@@ -1,0 +1,25 @@
+//
+// SPDX-FileCopyrightText: 2025-2026 GAME-OVER-op
+// SPDX-License-Identifier: MIT
+//
+
+package {
+    default_applicable_licenses: ["tiro_hardware_service_license"],
+}
+
+license {
+    name: "tiro_hardware_service_license",
+    visibility: [":__subpackages__"],
+    license_kinds: ["SPDX-license-identifier-MIT"],
+    license_text: ["LICENSE"],
+}
+
+rust_binary {
+    name: "tiro_hardware_service",
+    crate_name: "tiro_hardware_service",
+    srcs: ["src/main.rs"],
+    edition: "2021",
+    rustlibs: ["liblibc"],
+    init_rc: ["tiro_hardware_service.rc"],
+    system_ext_specific: true,
+}

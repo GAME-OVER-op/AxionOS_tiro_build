@@ -1,0 +1,16 @@
+commit 98ca1170e69b4b791f075928afae542ac68a7174
+Author:     ggover <ggover@localhost>
+AuthorDate: Mon Oct 12 23:28:15 2026 +0000
+Commit:     ggover <ggover@localhost>
+CommitDate: Mon Oct 12 23:28:15 2026 +0000
+
+    Keep QS header at screen edges and restore camera protection on rotation
+    
+    Change-Id: Ica150e68014a815c32731f0f811bcd6122653c5b
+
+ .../SystemUI/res/xml/combined_qs_header_scene.xml  | 54 +---------------------
+ .../SystemUI/res/xml/large_screen_shade_header.xml |  5 +-
+ packages/SystemUI/res/xml/qs_header.xml            | 38 +++++++--------
+ .../com/android/systemui/DisplayCutoutBaseView.kt  |  3 ++
+ .../com/android/systemui/ScreenDecorations.java    | 15 +++++-
+ 5 files changed, 40 insertions(+), 75 deletions(-)

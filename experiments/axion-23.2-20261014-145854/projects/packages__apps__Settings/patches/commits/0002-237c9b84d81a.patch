@@ -1,0 +1,13 @@
+commit 237c9b84d81ad79136c0b9ebb16a6b638aca6c91
+Author:     ggover <ggover@localhost>
+AuthorDate: Mon Oct 12 22:45:27 2026 +0000
+Commit:     ggover <ggover@localhost>
+CommitDate: Mon Oct 12 22:45:27 2026 +0000
+
+    Make display cutout emulation setting device-configurable
+    
+    Change-Id: I3ccc1718b3480aa37a8315940d2a0502883175ff
+
+ res/values/config.xml                                             | 3 +++
+ .../display/EmulateDisplayCutoutPreferenceController.java         | 8 ++++++++
+ 2 files changed, 11 insertions(+)

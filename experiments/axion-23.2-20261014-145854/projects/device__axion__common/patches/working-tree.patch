@@ -1,0 +1,15 @@
+diff --git a/init/init.axion.rc b/init/init.axion.rc
+index b9c161801014564fbd27c9ae6246e5ab1357532d..bf5c4fa4fade3c9fbb96bf4e2f6b0522a8628611 100644
+--- a/init/init.axion.rc
++++ b/init/init.axion.rc
+@@ -3,8 +3,8 @@ on property:persist.sys.is_upgrade=1
+     exec - system system -- /bin/rm -rf /data/resource-cache
+ 
+ on zygote-start && property:persist.sys.ax_hbm_supp=true && property:persist.sys.ax_hbm_file=*
+-    chown system system ${persist.sys.hbmservice_file}
+-    chmod 0775 ${persist.sys.hbmservice_file}
++    chown system system ${persist.sys.ax_hbm_file}
++    chmod 0660 ${persist.sys.ax_hbm_file}
+ 
+ on boot
+     chown system system /proc/ax_named_thread_affinity/pid

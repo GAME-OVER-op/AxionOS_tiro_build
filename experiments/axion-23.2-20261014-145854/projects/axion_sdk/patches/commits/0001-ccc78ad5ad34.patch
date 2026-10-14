@@ -1,0 +1,16 @@
+commit ccc78ad5ad3462c76a3ce48e8be0b7c9bd27a602
+Author:     ggover <ggover@localhost>
+AuthorDate: Mon Oct 12 21:44:04 2026 +0000
+Commit:     ggover <ggover@localhost>
+CommitDate: Mon Oct 12 21:44:04 2026 +0000
+
+    Improve AxionOS about screen and dynamic device information
+    
+    Change-Id: Id8b5d1997c59f6e52451e3eefd465b33f59a012e
+
+ ax_compose/res/values-ru/strings.xml               |  24 +
+ ax_compose/res/values/strings.xml                  |  22 +
+ .../axion/compose/about/AxionAboutScreen.kt        | 896 +++++++++++----------
+ .../android/axion/deviceinfo/DeviceInfoProvider.kt | 327 ++++----
+ 4 files changed, 697 insertions(+), 572 deletions(-)
+ create mode 100644 ax_compose/res/values-ru/strings.xml

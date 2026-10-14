@@ -1,0 +1,56 @@
+REPO_PATH=device/nubia/sm8650-common
+HEAD=d542710e64c2682e24a081fa20b74ce59294e539
+
+===== REMOTES =====
+github-nubia	https://github.com/nubia-sm8650-devs/android_device_nubia_sm8650-common (fetch)
+github-nubia	https://github.com/nubia-sm8650-devs/android_device_nubia_sm8650-common (push)
+
+===== BRANCHES =====
+* (no branch)                       d542710 sm8650-common: Set ssr restart level
+  remotes/github-nubia/lineage-23.2 d542710 sm8650-common: Set ssr restart level
+  remotes/m/lineage-23.2            -> github-nubia/lineage-23.2
+
+===== STATUS =====
+ M parts/AndroidManifest.xml
+ M parts/proguard.flags
+ M parts/res/values/strings.xml
+ M parts/res/xml/fan_preferences.xml
+ M parts/res/xml/nubia_preferences.xml
+ M parts/res/xml/trigger_preferences.xml
+ M parts/src/org/lineageos/settings/BootReceiver.kt
+ M parts/src/org/lineageos/settings/TileActivity.kt
+ M parts/src/org/lineageos/settings/fan/FanController.kt
+ M parts/src/org/lineageos/settings/fan/FanFragment.kt
+ M parts/src/org/lineageos/settings/trigger/TriggerController.kt
+ M parts/src/org/lineageos/settings/trigger/TriggerFragment.kt
+ M parts/src/org/lineageos/settings/utils/SettingsUtils.kt
+ M rro_overlays/FrameworksResTarget_Vendor/res/values/config.xml
+ M sepolicy/private/devicesettings_app.te
+ M sepolicy/private/file.te
+ M sepolicy/private/genfs_contexts
+?? hardware/
+?? parts/res/drawable/ic_hbm.xml
+?? parts/res/drawable/ic_lighting.xml
+?? parts/res/values-ru/
+?? parts/res/values/arrays.xml
+?? parts/res/values/styles.xml
+?? parts/res/xml/hbm_preferences.xml
+?? parts/res/xml/lighting_preferences.xml
+?? parts/res/xml/trigger_app_preferences.xml
+?? parts/src/org/lineageos/settings/fan/FanCurvePreference.kt
+?? parts/src/org/lineageos/settings/hbm/
+?? parts/src/org/lineageos/settings/lighting/
+?? parts/src/org/lineageos/settings/service/
+?? parts/src/org/lineageos/settings/trigger/TriggerAppActivity.kt
+?? parts/src/org/lineageos/settings/trigger/TriggerAppFragment.kt
+?? parts/src/org/lineageos/settings/trigger/TriggerAppsActivity.kt
+?? parts/src/org/lineageos/settings/trigger/TriggerAppsFragment.kt
+?? parts/src/org/lineageos/settings/trigger/TriggerCalibrationActivity.kt
+?? parts/src/org/lineageos/settings/trigger/TriggerConfigStore.kt
+?? sepolicy/private/file_contexts
+?? sepolicy/private/hbm.te
+?? sepolicy/private/tiro_hardware_service.te
+?? sepolicy/vendor/hbm.te
+
+===== LOCAL-ONLY COMMITS =====
+

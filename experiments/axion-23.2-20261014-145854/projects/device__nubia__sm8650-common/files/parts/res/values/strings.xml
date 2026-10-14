@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     SPDX-FileCopyrightText: 2025 The LineageOS Project
+     SPDX-License-Identifier: Apache-2.0
+-->
+<resources>
+    <string name="nubia_title">Nubia settings</string>
+    <string name="nubia_summary">Additional device specific tweaks</string>
+
+    <!-- Fan Control -->
+    <string name="fan_control_title">Fan Control</string>
+    <string name="fan_control_summary">Control the device cooling fan</string>
+    <string name="fan_enable_title">Enable Fan</string>
+    <string name="fan_enable_summary">Turn the cooling fan on or off</string>
+    <string name="fan_speed_title">Fan Speed</string>
+    <string name="fan_speed_summary">Adjust fan speed level</string>
+    <string name="fan_mode_title">Fan mode</string>
+    <string name="fan_mode_manual">Manual</string>
+    <string name="fan_mode_auto">Automatic temperature curve</string>
+    <string name="fan_curve_title">Automatic fan curve</string>
+    <string name="fan_curve_summary">Set a temperature threshold for each fan speed</string>
+    <string name="fan_curve_dialog_title">Fan temperature curve</string>
+    <string name="fan_curve_dialog_message">Each level starts at its selected CPU temperature. Thresholds are kept in increasing order.</string>
+    <string name="fan_curve_speed">Speed %1$d</string>
+    <string name="fan_curve_temperature_unit">°C</string>
+
+    <!-- Trigger buttons -->
+    <string name="trigger_buttons_title">Trigger buttons</string>
+    <string name="trigger_buttons_summary">Enable or disable trigger buttons</string>
+    <string name="trigger_buttons_enable_title">Enable trigger buttons</string>
+    <string name="trigger_buttons_enable_summary">Use shoulder triggers only in configured applications</string>
+    <string name="trigger_selected_apps_title">Configured applications</string>
+    <string name="trigger_choose_apps_title">Choose applications</string>
+    <string name="trigger_choose_apps_summary">Select games and applications that may use shoulder triggers</string>
+    <string name="trigger_apps_list_title">Applications</string>
+    <string name="trigger_no_apps_selected">No applications selected</string>
+    <string name="trigger_app_summary">Left: %1$s · Right: %2$s</string>
+    <string name="trigger_left_title">Left trigger</string>
+    <string name="trigger_right_title">Right trigger</string>
+    <string name="trigger_coordinates_summary">Touch point: %1$d, %2$d</string>
+    <string name="trigger_coordinates_missing">Touch point is not calibrated</string>
+    <string name="trigger_calibrate_title">Calibrate touch points</string>
+    <string name="trigger_calibrate_summary">Launch the application and place the cyan and red markers over its controls</string>
+    <string name="trigger_calibration_hint">Drag L (cyan) and R (red) onto the game controls</string>
+    <string name="trigger_enable_side_first">Enable at least one trigger before calibration</string>
+    <string name="trigger_app_launch_failed">This application cannot be launched</string>
+    <string name="trigger_coordinates_saved">Trigger coordinates saved</string>
+
+    <!-- Lighting -->
+    <string name="lighting_title">RGB lighting</string>
+    <string name="lighting_summary">Configure fan, trigger, and notification lighting</string>
+    <string name="lighting_enable">Enable lighting</string>
+    <string name="lighting_mode">Mode</string>
+    <string name="lighting_effect">Color / effect</string>
+    <string name="lighting_fan_category">Fan lighting</string>
+    <string name="lighting_trigger_category">Trigger lighting</string>
+    <string name="lighting_trigger_summary">Active only while triggers are used in a configured application</string>
+    <string name="lighting_notification_category">Notification lighting</string>
+    <string name="lighting_notification_summary">External lighting is active only while the screen is off</string>
+    <string name="notification_listener_label">Nubia notification lighting</string>
+
+    <!-- High brightness mode -->
+    <string name="hbm_title">High brightness mode</string>
+    <string name="hbm_summary">Automatic or persistent maximum display brightness</string>
+    <string name="hbm_mode_title">HBM mode</string>
+    <string name="hbm_mode_off">Off</string>
+    <string name="hbm_mode_auto">Automatic</string>
+    <string name="hbm_mode_forced">Forced</string>
+    <string name="hbm_lux_on_title">Activation threshold</string>
+    <string name="hbm_lux_on_summary">Ambient light level at which automatic HBM turns on</string>
+    <string name="hbm_lux_off_title">Deactivation threshold</string>
+    <string name="hbm_lux_off_summary">Ambient light level below which automatic HBM turns off</string>
+    <string name="hbm_forced_warning">Forced HBM increases power use and display temperature. It turns off with the screen and is restored immediately after screen-on.</string>
+    <string name="hbm_tile_title">HBM</string>
+
+    <string name="state_enabled">enabled</string>
+    <string name="state_disabled">disabled</string>
+    <string name="action_save">Save</string>
+    <string name="action_cancel">Cancel</string>
+</resources>

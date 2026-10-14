@@ -1,0 +1,16 @@
+commit b56e504202e0035347528fc94175e8370ab6906d
+Author:     ggover <ggover@localhost>
+AuthorDate: Tue Oct 13 00:04:09 2026 +0000
+Commit:     ggover <ggover@localhost>
+CommitDate: Tue Oct 13 00:04:09 2026 +0000
+
+    Restore LineageOS network traffic indicator in SystemUI
+    
+    Change-Id: Iba0a851520a7561f04d8a863a387707edd83d5ad
+
+ packages/SystemUI/res/layout/status_bar.xml        | 12 +++++-----
+ .../statusbar/phone/PhoneStatusBarTransitions.java | 18 ++++++---------
+ .../statusbar/phone/PhoneStatusBarView.java        | 10 ++++++++
+ .../shared/ui/binder/HomeStatusBarViewBinder.kt    | 20 ++++++++--------
+ .../statusbar/policy/NetworkSpeedController.kt     | 27 ++--------------------
+ 5 files changed, 35 insertions(+), 52 deletions(-)

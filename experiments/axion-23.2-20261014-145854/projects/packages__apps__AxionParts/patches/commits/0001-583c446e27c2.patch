@@ -1,0 +1,14 @@
+commit 583c446e27c2666ec4f5121bb7d2a87711b1b55b
+Author:     ggover <ggover@localhost>
+AuthorDate: Tue Oct 13 00:04:10 2026 +0000
+Commit:     ggover <ggover@localhost>
+CommitDate: Tue Oct 13 00:04:10 2026 +0000
+
+    Expose LineageOS network traffic settings in AxionParts
+    
+    Change-Id: I3fd2de200f7d64688f8d0fa6d096da1f8d22c69e
+
+ res/values-ru/strings.xml                          |  2 ++
+ res/values/strings.xml                             |  2 ++
+ .../axionparts/ui/screens/UIFeaturesScreen.kt      | 33 ++++++++++++++++++++++
+ 3 files changed, 37 insertions(+)

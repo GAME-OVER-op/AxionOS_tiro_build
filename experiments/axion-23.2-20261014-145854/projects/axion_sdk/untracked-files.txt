@@ -1,0 +1,1 @@
+ax_compose/res/drawable-nodpi/axion_about_banner.webp

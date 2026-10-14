@@ -1,0 +1,13 @@
+diff --git a/Android.bp b/Android.bp
+index b9ee743b9219e35589b85aff582ef1cc133a8117..b5323c0abe4fe31ae06b514d8ad33954b65e693e 100644
+--- a/Android.bp
++++ b/Android.bp
+@@ -26,7 +26,7 @@ android_app {
+     ],
+     jni_libs: [
+         "libtensorflowlite_jni",
+-        "libtensorflowlite_gpu_jni",
++        "libaxion_tensorflowlite_gpu_jni",
+     ],
+     aaptflags: [
+         "-0 .tflite",

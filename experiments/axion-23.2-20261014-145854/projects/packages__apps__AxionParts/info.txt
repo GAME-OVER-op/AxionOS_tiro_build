@@ -1,0 +1,17 @@
+REPO_PATH=packages/apps/AxionParts
+HEAD=583c446e27c2666ec4f5121bb7d2a87711b1b55b
+
+===== REMOTES =====
+axion	https://github.com/AxionAOSP/android_packages_apps_AxionParts (fetch)
+axion	https://github.com/AxionAOSP/android_packages_apps_AxionParts (push)
+
+===== BRANCHES =====
+* local/axion-tiro-23.2      583c446 Expose LineageOS network traffic settings in AxionParts
+  remotes/axion/lineage-23.2 c5b726a New Crowdin updates (#20)
+  remotes/m/lineage-23.2     -> axion/lineage-23.2
+
+===== STATUS =====
+ M src/com/android/axion/axionparts/ui/screens/PerformanceScreen.kt
+
+===== LOCAL-ONLY COMMITS =====
+583c446e27c2666ec4f5121bb7d2a87711b1b55b

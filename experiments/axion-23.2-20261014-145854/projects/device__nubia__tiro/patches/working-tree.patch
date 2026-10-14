@@ -1,0 +1,90 @@
+diff --git a/BoardConfig.mk b/BoardConfig.mk
+index 04d2f60a91e0eecd06aec7dc79a3c81e3170644c..21978489ff259fd2c2b6031b21488adc4ad5a9d7 100644
+--- a/BoardConfig.mk
++++ b/BoardConfig.mk
+@@ -12,8 +12,15 @@ TARGET_KERNEL_CONFIG += \
+ # Properties
+ TARGET_VENDOR_PROP += $(DEVICE_PATH)/vendor.prop
+ 
++# High brightness mode
++HBM_SUPPORTED := true
++HBM_NODE := /sys/devices/platform/soc/soc:qcom,dsi-display-primary/hbm
++
+ # Security patch
+ BOOT_SECURITY_PATCH := 2025-12-01
+ VENDOR_SECURITY_PATCH := $(BOOT_SECURITY_PATCH)
+ 
+ include vendor/nubia/tiro/BoardConfigVendor.mk
++
++# Tiro uses kernel-native performance policy.
++TARGET_SUPPORTS_KERNEL_MANAGER := false
+diff --git a/device.mk b/device.mk
+index a0237f5d886e7cd230dce25357a53a63e441d29b..5552b6baf6564b6edabe689085beb191593b77aa 100644
+--- a/device.mk
++++ b/device.mk
+@@ -8,6 +8,16 @@ $(call inherit-product, device/nubia/sm8650-common/common.mk)
+ 
+ DEVICE_PATH := device/nubia/tiro
+ 
++# Axion's HbmService is the single owner of the panel HBM node. Keeping the
++# LiveDisplay sunlight HAL enabled would create a second writer and reset a
++# user-selected forced state.
++$(call soong_config_set_bool,livedisplay_sysfs,enable_se,false)
++
++# Tiro-only CPU policy max frequency access for the native game limiter.
++# system_ext also reaches Axion DSU builds without touching the vendor partition.
++PRODUCT_COPY_FILES += \
++    $(DEVICE_PATH)/rootdir/etc/init.tiro.cpu-game.rc:$(TARGET_COPY_OUT_SYSTEM_EXT)/etc/init/init.tiro.cpu-game.rc
++
+ # Audio
+ PRODUCT_COPY_FILES += \
+     $(DEVICE_PATH)/audio/mixer_paths_pineapple_mtp.xml:$(TARGET_COPY_OUT_VENDOR)/etc/audio/sku_pineapple/mixer_paths_pineapple_mtp.xml
+@@ -41,3 +51,19 @@ $(call inherit-product, vendor/nubia/tiro/dtsx/dtsx.mk)
+ PRODUCT_SYSTEM_PROPERTIES += \
+     ro.axion.local_build_type=UNOFFICIAL \
+     ro.axion.local_maintainer=GAME_OVER_op
++
++
++# AXION_TIRO_QCOM_SOONG_NAMESPACES
++# Explicit namespaces required when building Tiro without the interactive
++# Axion lunch wrapper.
++PRODUCT_SOONG_NAMESPACES += \
++    hardware/qcom-caf/sm8650 \
++    hardware/qcom-caf/bootctrl \
++    vendor/qcom/opensource/commonsys/display \
++    vendor/qcom/opensource/commonsys-intf/display \
++    hardware/qcom-caf/sm8650/data-ipa-cfg-mgr \
++    vendor/qcom/opensource/dataservices \
++    vendor/qcom/opensource/audio-hal/st-hal-ar-legacy \
++    hardware/qcom-caf/thermal \
++    hardware/qcom-caf/wlan \
++    hardware/qcom-caf/wlan/qcwcn
+diff --git a/lineage_tiro.mk b/lineage_tiro.mk
+index 0cf654988cca3c6a3d7269c6a918419e360f0919..9d194021758ea66a185ebdb0deed743532c66950 100644
+--- a/lineage_tiro.mk
++++ b/lineage_tiro.mk
+@@ -10,6 +10,9 @@ $(call inherit-product, $(SRC_TARGET_DIR)/product/full_base_telephony.mk)
+ # Inherit from device.
+ $(call inherit-product, device/nubia/tiro/device.mk)
+ 
++# DTS:X Ultra replaces Lineage/Axion audio effect applications.
++TARGET_EXCLUDES_AUDIOFX := true
++
+ # Inherit some common Lineage stuff.
+ $(call inherit-product, vendor/lineage/config/common_full_phone.mk)
+ 
+@@ -32,3 +35,14 @@ PRODUCT_BUILD_PROP_OVERRIDES += \
+     BuildFingerprint=nubia/NX769J-UN/NX769J:15/AQ3A.240812.002/20251224.151310:user/release-keys \
+     DeviceName=$(PRODUCT_SYSTEM_DEVICE) \
+     DeviceProduct=$(PRODUCT_SYSTEM_NAME)
++
++
++# Keep exactly one audio effect controller.
++PRODUCT_PACKAGES := $(filter-out AudioFX AxionFx,$(PRODUCT_PACKAGES))
++
++# === DTSX identity compatibility ===
++# Exact model read by the known-working DTS:X Ultra module backend.
++# PRODUCT_DEVICE, OTA pre-device and fingerprint are intentionally unchanged.
++PRODUCT_MODEL := ZTE A2020G Pro
++PRODUCT_SYSTEM_PROPERTIES += ro.build.product=P855A01
++# === End DTSX identity compatibility ===

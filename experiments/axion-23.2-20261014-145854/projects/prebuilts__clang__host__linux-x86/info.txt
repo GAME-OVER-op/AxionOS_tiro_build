@@ -1,0 +1,16 @@
+REPO_PATH=prebuilts/clang/host/linux-x86
+HEAD=9916fb51ccb914d62d35ad9a7b9b21d2ef046928
+
+===== REMOTES =====
+aosp	https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 (fetch)
+aosp	https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 (push)
+
+===== BRANCHES =====
+* (no branch)            9916fb51 Snap for 14079904 from d2de056d8d8de40b2c1ccd39bfadf0c0318f5bad to 25Q4-release
+  remotes/m/lineage-23.2 -> android-16.0.0_r4
+
+===== STATUS =====
+?? clang-r487747c
+
+===== LOCAL-ONLY COMMITS =====
+

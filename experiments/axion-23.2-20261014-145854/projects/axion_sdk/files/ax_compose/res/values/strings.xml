@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="long_press_to_reset">Long press to reset</string>
+    <string name="ax_color_picker_title">Color picker</string>
+    <string name="ax_color_picker_defaults">Defaults</string>
+    <string name="ax_color_picker_hue">Hue</string>
+    <string name="ax_color_picker_saturation">Saturation</string>
+    <string name="ax_color_picker_brightness">Brightness</string>
+    <string name="ax_color_picker_hex">HEX</string>
+    <string name="ax_color_picker_cancel">Cancel</string>
+    <string name="ax_color_picker_apply">Apply</string>
+    <!-- About phone -->
+    <string name="ax_about_title">About phone</string>
+    <string name="ax_about_loading">Loading device information…</string>
+    <string name="ax_about_unavailable">Device information is unavailable</string>
+    <string name="ax_about_device_name">Device name</string>
+    <string name="ax_about_rear">Rear: %1$s</string>
+    <string name="ax_about_front">Front: %1$s</string>
+    <string name="ax_about_processor">Processor</string>
+    <string name="ax_about_camera">Camera</string>
+    <string name="ax_about_ram">RAM</string>
+    <string name="ax_about_storage">Storage</string>
+    <string name="ax_about_battery">Battery</string>
+    <string name="ax_about_screen">Screen</string>
+    <string name="ax_about_device_details">Device details</string>
+    <string name="ax_about_android_version">Android version</string>
+    <string name="ax_about_security_patch">Security update</string>
+    <string name="ax_about_build_date">Build date</string>
+    <string name="ax_about_kernel">Kernel version</string>
+    <string name="ax_about_see_all">See all</string>
+    <string name="ax_about_edit_device_name">Edit device name</string>
+    <string name="ax_about_save">Save</string>
+    <string name="ax_about_cancel">Cancel</string>
+</resources>

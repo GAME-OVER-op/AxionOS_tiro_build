@@ -1,0 +1,208 @@
+diff --git a/arch/arm64/configs/oem/boards/tiro_diff.config b/arch/arm64/configs/oem/boards/tiro_diff.config
+index 39e0242560639274c7b450972af4dab655c6857b..466cefd5aa2e063a97f99fb7a9adda0fbc9abc01 100644
+--- a/arch/arm64/configs/oem/boards/tiro_diff.config
++++ b/arch/arm64/configs/oem/boards/tiro_diff.config
+@@ -8,3 +8,25 @@ CONFIG_NUBIA_HW_CONFIG_BY_GPIO=y
+ 
+ #add for charger skin thermal distinguish
+ CONFIG_ZTE_FEATURE_CHG_BATT_2S=y
++
++# === Kurumi Tiro ROM kernel configuration ===
++CONFIG_KURUMI_TIRO_PERFORMANCE_GUARD=y
++
++# CONFIG_BLK_WBT is not set
++# CONFIG_PER_VMA_LOCK_STATS is not set
++CONFIG_SCSI_SCAN_ASYNC=y
++
++CONFIG_WQ_POWER_EFFICIENT_DEFAULT=y
++CONFIG_LRU_GEN=y
++CONFIG_LRU_GEN_ENABLED=y
++CONFIG_RCU_LAZY=y
++# CONFIG_RCU_LAZY_DEFAULT_OFF is not set
++
++# CONFIG_PM_DEBUG is not set
++# CONFIG_PM_ADVANCED_DEBUG is not set
++# CONFIG_THERMAL_STATISTICS is not set
++# CONFIG_THERMAL_EMULATION is not set
++# CONFIG_UBSAN is not set
++
++# KASAN remains enabled for Qualcomm GKI/KMI compatibility.
++# === End Kurumi Tiro ROM kernel configuration ===
+diff --git a/drivers/cpufreq/cpufreq.c b/drivers/cpufreq/cpufreq.c
+index bcb81cb5642e29e0e582aea2bcc9db744f316b9c..62faa0bb65e2e0c22d068539f2805742cef76c87 100644
+--- a/drivers/cpufreq/cpufreq.c
++++ b/drivers/cpufreq/cpufreq.c
+@@ -749,7 +749,29 @@ static ssize_t store_##file_name					\
+ 	return ret >= 0 ? count : ret;					\
+ }
+ 
+-store_one(scaling_min_freq, min);
++/*
++ * KURUMI_TIRO_CPU_BASE_MIN_GUARD
++ *
++ * Keep only the base scaling_min_freq sysfs QoS request at the real hardware
++ * minimum. WALT, scheduler, input and performance clients use independent
++ * freq_qos requests and can still raise the effective minimum temporarily.
++ */
++static ssize_t store_scaling_min_freq(struct cpufreq_policy *policy,
++				      const char *buf, size_t count)
++{
++	unsigned long value;
++	int ret;
++
++	ret = sscanf(buf, "%lu", &value);
++	if (ret != 1)
++		return -EINVAL;
++
++	if (IS_ENABLED(CONFIG_KURUMI_TIRO_PERFORMANCE_GUARD))
++		value = policy->cpuinfo.min_freq;
++
++	ret = freq_qos_update_request(policy->min_freq_req, value);
++	return ret >= 0 ? count : ret;
++}
+ store_one(scaling_max_freq, max);
+ 
+ /*
+diff --git a/drivers/thermal/Kconfig b/drivers/thermal/Kconfig
+index e052dae614ebba2e628da48e6de4f4991d5c1fb4..6056cd5c75c821efa0c3b82366b6152ddeb561b3 100644
+--- a/drivers/thermal/Kconfig
++++ b/drivers/thermal/Kconfig
+@@ -505,3 +505,12 @@ config KHADAS_MCU_FAN_THERMAL
+ 	  by the Microcontroller found on the Khadas VIM boards.
+ 
+ endif
++
++config KURUMI_TIRO_PERFORMANCE_GUARD
++	bool "Kurumi performance guards for Nubia Tiro"
++	default n
++	help
++	  Enable the Tiro-specific CPU base-frequency, thermal-performance
++	  and persistent ramoops guards. Critical thermal shutdown, battery,
++	  charging, BCL, storage, modem, WLAN and hardware LMH protections
++	  remain active.
+diff --git a/drivers/thermal/thermal_core.h b/drivers/thermal/thermal_core.h
+index 1571917bd3c8917a4d1115bee42e7a3230babade..0a24a299983b1870ae75479e8ef844a007e03442 100644
+--- a/drivers/thermal/thermal_core.h
++++ b/drivers/thermal/thermal_core.h
+@@ -68,6 +68,9 @@ static inline bool cdev_is_power_actor(struct thermal_cooling_device *cdev)
+ void thermal_cdev_update(struct thermal_cooling_device *);
+ void __thermal_cdev_update(struct thermal_cooling_device *cdev);
+ 
++/* KURUMI_TIRO_PERFORMANCE_THERMAL_GUARD */
++bool kurumi_tiro_performance_cdev(const struct thermal_cooling_device *cdev);
++
+ int get_tz_trend(struct thermal_zone_device *tz, int trip);
+ 
+ struct thermal_instance *
+diff --git a/drivers/thermal/thermal_helpers.c b/drivers/thermal/thermal_helpers.c
+index 096b2210505276f4731a5e25c6e00a68b9b49ef8..ab3252385a7a87627a91532d22eb9f2ce415cdba 100644
+--- a/drivers/thermal/thermal_helpers.c
++++ b/drivers/thermal/thermal_helpers.c
+@@ -192,9 +192,64 @@ void thermal_zone_set_trips(struct thermal_zone_device *tz)
+ 	mutex_unlock(&tz->lock);
+ }
+ 
++/*
++ * KURUMI_TIRO_PERFORMANCE_THERMAL_GUARD
++ *
++ * Preserve thermal sensing and critical/emergency protection while preventing
++ * ordinary software cooling devices from reducing interactive CPU, GPU or
++ * display performance. Matching uses stable cooling-device type names rather
++ * than registration-order IDs.
++ */
++bool kurumi_tiro_performance_cdev(
++	const struct thermal_cooling_device *cdev)
++{
++	const char *type;
++
++	if (!IS_ENABLED(CONFIG_KURUMI_TIRO_PERFORMANCE_GUARD))
++		return false;
++
++	if (!cdev)
++		return false;
++
++	type = cdev->type;
++	if (!type)
++		return false;
++
++	if (!strncmp(type, "cpufreq-", sizeof("cpufreq-") - 1) ||
++	    !strncmp(type, "thermal-cpufreq-",
++		     sizeof("thermal-cpufreq-") - 1) ||
++	    !strncmp(type, "cpu-hotplug", sizeof("cpu-hotplug") - 1) ||
++	    !strncmp(type, "cpu-isolate", sizeof("cpu-isolate") - 1) ||
++	    !strncmp(type, "pause-cpu", sizeof("pause-cpu") - 1) ||
++	    !strncmp(type, "thermal-pause-",
++		     sizeof("thermal-pause-") - 1) ||
++	    !strncmp(type, "cpu-cluster", sizeof("cpu-cluster") - 1) ||
++	    !strncmp(type, "thermal-cluster-",
++		     sizeof("thermal-cluster-") - 1))
++		return true;
++
++	if (!strcmp(type, "gpu") || !strcmp(type, "display-fps"))
++		return true;
++
++	/*
++	 * Only block KGSL GPU devfreq cooling. DDR, UFS and other devfreq
++	 * thermal clients continue to operate normally.
++	 */
++	if ((!strncmp(type, "devfreq-", sizeof("devfreq-") - 1) ||
++	     !strncmp(type, "thermal-devfreq-",
++		      sizeof("thermal-devfreq-") - 1)) &&
++	    strstr(type, "kgsl"))
++		return true;
++
++	return false;
++}
++
+ static void thermal_cdev_set_cur_state(struct thermal_cooling_device *cdev,
+ 				       int target)
+ {
++	if (kurumi_tiro_performance_cdev(cdev))
++		target = 0;
++
+ 	if (cdev->ops->set_cur_state(cdev, target))
+ 		return;
+ 
+diff --git a/drivers/thermal/thermal_sysfs.c b/drivers/thermal/thermal_sysfs.c
+index aef172b430c75c6bcc4e6d88f1fde29ad1a0b179..49f004de8a5e28af99a487be730772ba33c4249c 100644
+--- a/drivers/thermal/thermal_sysfs.c
++++ b/drivers/thermal/thermal_sysfs.c
+@@ -628,6 +628,10 @@ cur_state_store(struct device *dev, struct device_attribute *attr,
+ 	if (state > cdev->max_state)
+ 		return -EINVAL;
+ 
++	/* KURUMI_TIRO_PERFORMANCE_THERMAL_GUARD */
++	if (kurumi_tiro_performance_cdev(cdev))
++		state = 0;
++
+ 	mutex_lock(&cdev->lock);
+ 
+ 	result = cdev->ops->set_cur_state(cdev, state);
+diff --git a/fs/pstore/ram.c b/fs/pstore/ram.c
+index f12394457689610602dae011fa55b0166ed2f278..00999057d3365e7c9f3814bd20d18add29cd9f65 100644
+--- a/fs/pstore/ram.c
++++ b/fs/pstore/ram.c
+@@ -749,6 +749,23 @@ static int ramoops_probe(struct platform_device *pdev)
+ 		goto fail_out;
+ 	}
+ 
++	/*
++	 * KURUMI_TIRO_RAMOOPS_LAYOUT_GUARD
++	 *
++	 * Older Tiro/Pineapple DTBs reserve 2 MiB for ramoops but assign the
++	 * complete region to pmsg. Correct only that exact legacy layout.
++	 */
++	if (IS_ENABLED(CONFIG_KURUMI_TIRO_PERFORMANCE_GUARD) &&
++	    pdata->mem_size == 0x200000 &&
++	    pdata->pmsg_size == pdata->mem_size &&
++	    !pdata->record_size && !pdata->console_size &&
++	    !pdata->ftrace_size) {
++		pdata->record_size = 0x100000;
++		pdata->console_size = 0x080000;
++		pdata->pmsg_size = 0x080000;
++		pr_info("Kurumi Tiro ramoops: dmesg=1MiB console=512KiB pmsg=512KiB\n");
++	}
++
+ 	if (!pdata->mem_size || (!pdata->record_size && !pdata->console_size &&
+ 			!pdata->ftrace_size && !pdata->pmsg_size)) {
+ 		pr_err("The memory size and the record/console size must be "

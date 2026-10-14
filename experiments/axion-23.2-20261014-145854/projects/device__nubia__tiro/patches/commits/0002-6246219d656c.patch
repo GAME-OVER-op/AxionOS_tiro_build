@@ -1,0 +1,16 @@
+commit 6246219d656c1f63e8966088cdf794f2fb78b050
+Author:     ggover <ggover@localhost>
+AuthorDate: Mon Oct 12 22:45:27 2026 +0000
+Commit:     ggover <ggover@localhost>
+CommitDate: Mon Oct 12 22:45:27 2026 +0000
+
+    Hide display cutout emulation setting on Tiro
+
+ device.mk                                         | 3 ++-
+ overlay/SettingsOverlayTiro/Android.bp            | 7 +++++++
+ overlay/SettingsOverlayTiro/AndroidManifest.xml   | 8 ++++++++
+ overlay/SettingsOverlayTiro/res/values/config.xml | 5 +++++
+ 4 files changed, 22 insertions(+), 1 deletion(-)
+ create mode 100644 overlay/SettingsOverlayTiro/Android.bp
+ create mode 100644 overlay/SettingsOverlayTiro/AndroidManifest.xml
+ create mode 100644 overlay/SettingsOverlayTiro/res/values/config.xml

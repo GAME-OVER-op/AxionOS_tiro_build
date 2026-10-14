@@ -1,0 +1,12 @@
+# SPDX-FileCopyrightText: 2025-2026 GAME-OVER-op
+# SPDX-License-Identifier: MIT
+
+on post-fs-data
+    mkdir /data/system/tiro_hardware 0770 system system
+    restorecon_recursive /data/system/tiro_hardware
+
+service tiro_hardware_service /system_ext/bin/tiro_hardware_service
+    class late_start
+    user system
+    group system input uhid
+    restart_period 5
