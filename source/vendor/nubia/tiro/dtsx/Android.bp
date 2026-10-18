@@ -1,0 +1,71 @@
+// Native DTS:X Ultra integration for Nubia Tiro.
+
+android_app_import {
+    name: "DtsUltra",
+    enforce_uses_libs: false,
+    apk: "proprietary/system/priv-app/DtsUltra/DtsUltra.apk",
+    privileged: true,
+    presigned: true,
+    dex_preopt: {
+        enabled: false,
+    },
+}
+
+dex_import {
+    name: "dtsaudio",
+    jars: ["proprietary/system/framework/dtsaudio.jar"],
+}
+
+cc_prebuilt_library_shared {
+    name: "libdts-eagle-shared",
+    vendor: true,
+    compile_multilib: "64",
+    arch: {
+        arm64: {
+            srcs: ["proprietary/vendor/lib64/libdts-eagle-shared.so"],
+        },
+    },
+    strip: {
+        none: true,
+    },
+    check_elf_files: false,
+}
+
+cc_prebuilt_library_shared {
+    name: "libdtsdsec",
+    vendor: true,
+    compile_multilib: "64",
+    arch: {
+        arm64: {
+            srcs: ["proprietary/vendor/lib64/libdtsdsec.so"],
+        },
+    },
+    strip: {
+        none: true,
+    },
+    check_elf_files: false,
+}
+
+cc_prebuilt_library_shared {
+    name: "libdtsaudio",
+    vendor: true,
+    relative_install_path: "soundfx",
+    compile_multilib: "64",
+    arch: {
+        arm64: {
+            srcs: ["proprietary/vendor/lib64/soundfx/libdtsaudio.so"],
+        },
+    },
+    strip: {
+        none: true,
+    },
+    check_elf_files: false,
+}
+
+prebuilt_etc {
+    name: "dtsx_init_rc",
+    src: "dtsx.rc",
+    filename: "dtsx.rc",
+    sub_dir: "init",
+    vendor: true,
+}
