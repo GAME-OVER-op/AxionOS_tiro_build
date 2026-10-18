@@ -12,43 +12,16 @@ object TriggerController {
 
     const val KEY_TRIGGER_ENABLE = "trigger_enable"
 
-    const val TRIGGER_BUTTON1_ENABLE_NODE = "/proc/nubia_key/sar0/mode_operation"
-    const val TRIGGER_BUTTON2_ENABLE_NODE = "/proc/nubia_key/sar1/mode_operation"
-
-    const val TRIGGER_SLEEP_MODE = "2"
-    const val TRIGGER_WAKE_MODE = "1"
-
-    /*
-     * Enable or disable the trigger buttons
-     * @return puts the value in place
-     */
+    /** Hardware sysfs is owned solely by the native trigger service. */
     fun setTriggerEnabled(context: Context, enabled: Boolean) {
         putInt(context, KEY_TRIGGER_ENABLE, if (enabled) 1 else 0)
-        writeLine(
-            TRIGGER_BUTTON1_ENABLE_NODE,
-            if (enabled) TRIGGER_WAKE_MODE else TRIGGER_SLEEP_MODE,
-        )
-        writeLine(
-            TRIGGER_BUTTON2_ENABLE_NODE,
-            if (enabled) TRIGGER_WAKE_MODE else TRIGGER_SLEEP_MODE,
-        )
+        TriggerRuntimeController.publish()
     }
 
-    /*
-     * Apply trigger buttons state settings
-     * @return puts the value in place
-     */
-    fun applySettings(context: Context, enabled: Boolean) {
-        setTriggerEnabled(context, enabled)
-    }
+    fun applySettings(context: Context, enabled: Boolean) = setTriggerEnabled(context, enabled)
 
-    /*
-     * Restore settings on boot / resume
-     * @return puts the value in place
-     */
     fun restoreSettings(context: Context) {
-        val triggerEnabled = getInt(context, KEY_TRIGGER_ENABLE, 0) == 1
-
-        applySettings(context, triggerEnabled)
+        TriggerRuntimeController.initialize(context)
+        TriggerRuntimeController.publish()
     }
 }

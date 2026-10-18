@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     SPDX-FileCopyrightText: 2026 GAME-OVER-op
+     SPDX-License-Identifier: Apache-2.0
+-->
+<resources>
+    <string name="nubia_title">Настройки Nubia</string>
+    <string name="nubia_summary">Дополнительные возможности устройства</string>
+
+    <string name="fan_control_title">Управление кулером</string>
+    <string name="fan_control_summary">Режим и скорость системы охлаждения</string>
+    <string name="fan_enable_title">Включить кулер</string>
+    <string name="fan_enable_summary">Разрешить работу кулера</string>
+    <string name="fan_speed_title">Скорость кулера</string>
+    <string name="fan_speed_summary">Уровень скорости в ручном режиме</string>
+    <string name="fan_mode_title">Режим кулера</string>
+    <string name="fan_mode_manual">Ручной</string>
+    <string name="fan_mode_auto">Автоматический по температурной кривой</string>
+    <string name="fan_curve_title">Автоматическая кривая кулера</string>
+    <string name="fan_curve_summary">Температура включения для каждого уровня скорости</string>
+    <string name="fan_curve_dialog_title">Температурная кривая кулера</string>
+    <string name="fan_curve_dialog_message">Первый уровень нельзя установить ниже 32°C. Каждый следующий уровень должен быть минимум на 1°C выше предыдущего.</string>
+    <string name="fan_curve_speed">Скорость %1$d</string>
+    <string name="fan_curve_temperature_unit">°C</string>
+
+    <!-- Per-app shoulder triggers -->
+    <string name="trigger_apps_title">Приложения</string>
+    <string name="trigger_apps_summary">Назначить левый и правый триггер для приложения</string>
+    <string name="trigger_apps_loading">Загрузка приложений…</string>
+    <string name="trigger_apps_empty">Запускаемые приложения не найдены</string>
+    <string name="trigger_profile_title">Профиль триггеров</string>
+    <string name="trigger_left">Левый плечевой триггер</string>
+    <string name="trigger_right">Правый плечевой триггер</string>
+    <string name="trigger_both">Оба триггера</string>
+    <string name="trigger_save_profile">Сохранить</string>
+    <string name="trigger_saved">Профиль сохранён</string>
+    <string name="trigger_edit_coordinates">Настроить координаты поверх игры</string>
+    <string name="trigger_reset_coordinates">Сбросить координаты</string>
+    <string name="trigger_confirm_reset">Очистить координаты выбранных триггеров? Другие приложения не будут затронуты.</string>
+    <string name="trigger_delete_profile">Удалить профиль</string>
+    <string name="trigger_confirm_delete">Удалить профиль триггеров этого приложения?</string>
+    <string name="trigger_overlay_permission">Разрешите настройкам Nubia отображаться поверх других приложений для размещения триггеров.</string>
+    <string name="trigger_unlaunchable">Не удалось запустить приложение</string>
+    <string name="trigger_save_failed">Не удалось сохранить профиль</string>
+    <string name="trigger_assigned">назначен</string>
+    <string name="trigger_unassigned">не назначен</string>
+    <string name="trigger_coord_summary">Левый: %1$s  ·  Правый: %2$s</string>
+    <string name="trigger_rotation_changed">Поворот экрана изменился. Откройте редактор заново.</string>
+    <string name="trigger_selected_apps_title">Настроенные приложения</string>
+    <string name="trigger_add_apps_title">Добавить приложение</string>
+    <string name="trigger_no_selected_apps">Приложения пока не выбраны</string>
+    <string name="trigger_quick_configure">Настроить</string>
+    <string name="trigger_disabled">выключен</string>
+    <string name="trigger_apps_search">Поиск приложений</string>
+    <string name="trigger_apps_count">Приложений: %1$d</string>
+    <string name="trigger_apps_hint">Выберите приложение для настройки плечевых триггеров</string>
+    <string name="trigger_reset_short">Сбросить</string>
+    <string name="trigger_delete_short">Удалить</string>
+    <string name="trigger_back">Назад</string>
+    <string name="trigger_already_added">Добавлено</string>
+    <string name="trigger_apps_no_matches">По вашему запросу ничего не найдено</string>
+    <string name="trigger_return_failed">Не удалось вернуться в настройки триггеров. Откройте настройки Nubia вручную.</string>
+
+    <!-- Shoulder trigger controls -->
+    <string name="trigger_buttons_title">Кнопки-триггеры</string>
+    <string name="trigger_buttons_summary">Включение и отключение сенсорных плечевых триггеров</string>
+    <string name="trigger_buttons_enable_title">Включить триггеры</string>
+    <string name="trigger_buttons_enable_summary">Разрешить нормальную работу триггеров</string>
+</resources>

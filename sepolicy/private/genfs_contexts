@@ -5,3 +5,6 @@ genfscon sysfs /kernel/fan/fan_speed_level    u:object_r:sysfs_fan:s0
 # Trigger buttons
 genfscon proc /nubia_key/sar0/mode_operation    u:object_r:proc_touchkey:s0
 genfscon proc /nubia_key/sar1/mode_operation    u:object_r:proc_touchkey:s0
+
+# NX769J AW22xxx RGB controller
+genfscon sysfs /devices/platform/soc/9c0000.qcom,qupv3_i2c_geni_se/98c000.i2c/i2c-0/0-006a/leds/aw22xxx_led u:object_r:sysfs_tiro_rgb:s0

@@ -1,0 +1,12 @@
+# SPDX-FileCopyrightText: 2026 GAME-OVER-op
+# SPDX-License-Identifier: Apache-2.0
+
+on post-fs-data
+    mkdir /data/system/nubia_fan 0770 system system
+    restorecon_recursive /data/system/nubia_fan
+
+service nubia_fan_service /system_ext/bin/nubia_fan_service
+    class late_start
+    user system
+    group system
+    restart_period 5

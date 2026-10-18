@@ -1,0 +1,18 @@
+//
+// SPDX-FileCopyrightText: 2026 GAME-OVER-op
+// SPDX-License-Identifier: Apache-2.0
+//
+
+cc_binary {
+    name: "nubia_fan_service",
+    srcs: ["main.cpp"],
+    system_ext_specific: true,
+    init_rc: ["nubia_fan_service.rc"],
+    shared_libs: ["liblog"],
+    cflags: [
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+    ],
+    cpp_std: "c++17",
+}

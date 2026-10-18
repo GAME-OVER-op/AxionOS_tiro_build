@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
      SPDX-FileCopyrightText: 2025 The LineageOS Project
+     SPDX-FileCopyrightText: 2026 GAME-OVER-op
      SPDX-License-Identifier: Apache-2.0
 -->
 <resources>
@@ -13,11 +14,58 @@
     <string name="fan_enable_title">Enable Fan</string>
     <string name="fan_enable_summary">Turn the cooling fan on or off</string>
     <string name="fan_speed_title">Fan Speed</string>
-    <string name="fan_speed_summary">Adjust fan speed level</string>
+    <string name="fan_speed_summary">Adjust fan speed level in manual mode</string>
+    <string name="fan_mode_title">Fan mode</string>
+    <string name="fan_mode_manual">Manual</string>
+    <string name="fan_mode_auto">Automatic temperature curve</string>
+    <string name="fan_curve_title">Automatic fan curve</string>
+    <string name="fan_curve_summary">Set a temperature threshold for each fan speed</string>
+    <string name="fan_curve_dialog_title">Fan temperature curve</string>
+    <string name="fan_curve_dialog_message">The first level cannot be set below 32°C. Every next level must be at least 1°C higher than the previous level.</string>
+    <string name="fan_curve_speed">Speed %1$d</string>
+    <string name="fan_curve_temperature_unit">°C</string>
 
     <!-- Trigger buttons -->
     <string name="trigger_buttons_title">Trigger buttons</string>
     <string name="trigger_buttons_summary">Enable or disable trigger buttons</string>
     <string name="trigger_buttons_enable_title">Enable trigger buttons</string>
     <string name="trigger_buttons_enable_summary">Allow trigger buttons to function normally</string>
+
+    <!-- Per-app shoulder triggers -->
+    <string name="trigger_apps_title">Applications</string>
+    <string name="trigger_apps_summary">Assign left and right triggers per app</string>
+    <string name="trigger_apps_loading">Loading installed apps…</string>
+    <string name="trigger_apps_empty">No launchable applications found</string>
+    <string name="trigger_profile_title">Trigger profile</string>
+    <string name="trigger_left">Left shoulder trigger</string>
+    <string name="trigger_right">Right shoulder trigger</string>
+    <string name="trigger_both">Both triggers</string>
+    <string name="trigger_save_profile">Save</string>
+    <string name="trigger_saved">Profile saved</string>
+    <string name="trigger_edit_coordinates">Set coordinates over the game</string>
+    <string name="trigger_reset_coordinates">Reset coordinates</string>
+    <string name="trigger_confirm_reset">Clear saved coordinates for the selected triggers? Other apps will not be affected.</string>
+    <string name="trigger_delete_profile">Delete profile</string>
+    <string name="trigger_confirm_delete">Delete this app’s trigger profile?</string>
+    <string name="trigger_overlay_permission">Allow Nubia Settings to display over other apps to edit trigger positions.</string>
+    <string name="trigger_unlaunchable">Cannot launch this application</string>
+    <string name="trigger_save_failed">Failed to save profile</string>
+    <string name="trigger_assigned">assigned</string>
+    <string name="trigger_unassigned">not assigned</string>
+    <string name="trigger_coord_summary">Left: %1$s  ·  Right: %2$s</string>
+    <string name="trigger_rotation_changed">Orientation changed. Reopen the editor.</string>
+    <string name="trigger_selected_apps_title">Configured applications</string>
+    <string name="trigger_add_apps_title">Add application</string>
+    <string name="trigger_no_selected_apps">No applications configured</string>
+    <string name="trigger_quick_configure">Configure</string>
+    <string name="trigger_disabled">disabled</string>
+    <string name="trigger_apps_search">Search applications</string>
+    <string name="trigger_apps_count">Applications: %1$d</string>
+    <string name="trigger_apps_hint">Choose an application to configure its shoulder triggers</string>
+    <string name="trigger_reset_short">Reset</string>
+    <string name="trigger_delete_short">Delete</string>
+    <string name="trigger_back">Back</string>
+    <string name="trigger_already_added">Added</string>
+    <string name="trigger_apps_no_matches">No applications match your search</string>
+    <string name="trigger_return_failed">Unable to return to trigger settings. Open Nubia Settings manually.</string>
 </resources>

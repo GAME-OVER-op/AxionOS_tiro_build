@@ -5,5 +5,18 @@ allow devicesettings_app {
     app_api_service
 }:service_manager find;
 
-rw_dir_file(devicesettings_app, sysfs_fan)
-rw_dir_file(devicesettings_app, proc_touchkey)
+# Nubia fan configuration is event-driven. The app only updates the persistent
+# configuration file; the native service owns all sysfs fan access.
+allow devicesettings_app system_data_file:dir search;
+allow devicesettings_app nubia_fan_data_file:dir create_dir_perms;
+allow devicesettings_app nubia_fan_data_file:file create_file_perms;
+
+# Nubia lighting configuration/runtime state is event driven. NubiaParts never
+# accesses AW22xxx sysfs directly.
+allow devicesettings_app nubia_lighting_data_file:dir create_dir_perms;
+allow devicesettings_app nubia_lighting_data_file:file create_file_perms;
+
+
+# Settings publishes event snapshots and per-app trigger profiles.
+allow devicesettings_app nubia_trigger_data_file:dir create_dir_perms;
+allow devicesettings_app nubia_trigger_data_file:file create_file_perms;

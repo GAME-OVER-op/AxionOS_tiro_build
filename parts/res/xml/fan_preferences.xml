@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
      SPDX-FileCopyrightText: 2025 The LineageOS Project
+     SPDX-FileCopyrightText: 2026 GAME-OVER-op
      SPDX-License-Identifier: Apache-2.0
 -->
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
@@ -12,9 +13,22 @@
         android:summary="@string/fan_enable_summary"
         android:defaultValue="false" />
 
+    <ListPreference
+        android:key="fan_mode"
+        android:title="@string/fan_mode_title"
+        android:summary="%s"
+        android:entries="@array/fan_mode_entries"
+        android:entryValues="@array/fan_mode_values"
+        android:defaultValue="manual" />
+
     <com.android.settingslib.widget.SliderPreference
         android:key="fan_speed_level"
         android:title="@string/fan_speed_title"
         android:summary="@string/fan_speed_summary"
         android:defaultValue="3" />
+
+    <org.lineageos.settings.fan.FanCurvePreference
+        android:key="fan_curve"
+        android:title="@string/fan_curve_title"
+        android:summary="@string/fan_curve_summary" />
 </PreferenceScreen>

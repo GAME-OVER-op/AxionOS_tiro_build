@@ -1,60 +1,60 @@
 /*
  * SPDX-FileCopyrightText: 2025 The LineageOS Project
+ * SPDX-FileCopyrightText: 2026 GAME-OVER-op
  * SPDX-License-Identifier: Apache-2.0
  */
 
 package org.lineageos.settings.fan
 
 import android.content.Context
-import org.lineageos.settings.utils.*
 
 object FanController {
 
     const val KEY_FAN_ENABLE = "fan_enable"
     const val KEY_FAN_SPEED = "fan_speed_level"
+    const val KEY_FAN_MODE = "fan_mode"
+    const val KEY_FAN_CURVE = "fan_curve"
 
-    const val FAN_ENABLE_NODE = "/sys/kernel/fan/fan_enable"
-    const val FAN_SPEED_NODE = "/sys/kernel/fan/fan_speed_level"
+    const val FAN_MIN_SPEED = FanConfigStore.MIN_SPEED
+    const val FAN_MAX_SPEED = FanConfigStore.MAX_SPEED
+    const val FAN_DEFAULT_SPEED = FanConfigStore.DEFAULT_SPEED
+    const val FAN_MODE_MANUAL = "manual"
+    const val FAN_MODE_AUTO = "auto"
+    const val FAN_MIN_CURVE_TEMP = FanConfigStore.MIN_CURVE_TEMP
+    const val FAN_MAX_CURVE_TEMP = FanConfigStore.MAX_CURVE_TEMP
 
-    const val FAN_MIN_SPEED = 1
-    const val FAN_MAX_SPEED = 5
-    const val FAN_DEFAULT_SPEED = 3
+    fun isFanEnabled(context: Context): Boolean = FanConfigStore.load().enabled
 
-    /*
-     * Enable or disable the fan
-     * @return puts the value in place
-     */
+    fun getFanSpeed(context: Context): Int = FanConfigStore.load().manualLevel
+
+    fun getFanMode(context: Context): String = FanConfigStore.load().mode
+
+    fun getFanCurve(context: Context): IntArray = FanConfigStore.load().curve.copyOf()
+
     fun setFanEnabled(context: Context, enabled: Boolean) {
-        putInt(context, KEY_FAN_ENABLE, if (enabled) 1 else 0)
-        writeLine(FAN_ENABLE_NODE, if (enabled) "1" else "0")
+        FanConfigStore.update { it.copy(enabled = enabled) }
     }
 
-    /*
-     * Set the fan speed level
-     * @return puts the value in place
-     */
     fun setFanSpeed(context: Context, speed: Int) {
-        putInt(context, KEY_FAN_SPEED, speed)
-        writeLine(FAN_SPEED_NODE, speed.toString())
+        FanConfigStore.update { it.copy(manualLevel = speed.coerceIn(FAN_MIN_SPEED, FAN_MAX_SPEED)) }
     }
 
-    /*
-     * Apply both fan state and speed settings
-     * @return puts the value in place
-     */
+    fun setFanMode(context: Context, mode: String) {
+        FanConfigStore.update {
+            it.copy(mode = if (mode == FAN_MODE_AUTO) FAN_MODE_AUTO else FAN_MODE_MANUAL)
+        }
+    }
+
+    fun setFanCurve(context: Context, curve: IntArray) {
+        FanConfigStore.update { it.copy(curve = FanConfigStore.normalizeCurve(curve)) }
+    }
+
     fun applySettings(context: Context, enabled: Boolean, speed: Int) {
-        setFanEnabled(context, enabled)
-        setFanSpeed(context, speed)
-    }
-
-    /*
-     * Restore settings on boot / resume
-     * @return puts the value in place
-     */
-    fun restoreSettings(context: Context) {
-        val fanEnabled = getInt(context, KEY_FAN_ENABLE, 0) == 1
-        val fanSpeed = getInt(context, KEY_FAN_SPEED, FAN_DEFAULT_SPEED)
-
-        applySettings(context, fanEnabled, fanSpeed)
+        FanConfigStore.update {
+            it.copy(
+                enabled = enabled,
+                manualLevel = speed.coerceIn(FAN_MIN_SPEED, FAN_MAX_SPEED),
+            )
+        }
     }
 }

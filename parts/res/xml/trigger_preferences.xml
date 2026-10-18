@@ -1,8 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-     SPDX-FileCopyrightText: 2025 The LineageOS Project
-     SPDX-License-Identifier: Apache-2.0
--->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
@@ -11,4 +8,13 @@
         android:title="@string/trigger_buttons_enable_title"
         android:summary="@string/trigger_buttons_enable_summary"
         android:defaultValue="false" />
+
+    <PreferenceCategory
+        android:key="trigger_selected"
+        android:title="@string/trigger_selected_apps_title" />
+
+    <Preference
+        android:key="trigger_apps"
+        android:title="@string/trigger_add_apps_title"
+        android:summary="@string/trigger_apps_hint" />
 </PreferenceScreen>

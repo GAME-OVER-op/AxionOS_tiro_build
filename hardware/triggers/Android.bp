@@ -1,0 +1,9 @@
+// SPDX-License-Identifier: Apache-2.0
+cc_binary {
+    name: "nubia_trigger_service",
+    srcs: ["main.c"],
+    system_ext_specific: true,
+    init_rc: ["nubia_trigger_service.rc"],
+    shared_libs: ["liblog"],
+    cflags: ["-Wall", "-Wextra", "-Werror", "-Wformat-security"],
+}

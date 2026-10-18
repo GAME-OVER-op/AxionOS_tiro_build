@@ -1,5 +1,16 @@
 # Fan control
 type sysfs_fan, fs_type, sysfs_type;
+type nubia_fan_service_exec, exec_type, file_type, system_file_type;
+type nubia_fan_data_file, file_type, data_file_type, core_data_file_type;
+
+# RGB lighting control
+type sysfs_tiro_rgb, fs_type, sysfs_type;
+type nubia_lighting_service_exec, exec_type, file_type, system_file_type;
+type nubia_lighting_data_file, file_type, data_file_type, core_data_file_type;
 
 # Trigger buttons
 type proc_touchkey, fs_type, proc_type;
+
+# Native two-trigger touch merger
+type nubia_trigger_service_exec, exec_type, file_type, system_file_type;
+type nubia_trigger_data_file, file_type, data_file_type, core_data_file_type;

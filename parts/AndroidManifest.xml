@@ -10,8 +10,17 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS" />
+    <uses-permission android:name="android.permission.MANAGE_ACTIVITY_TASKS" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+    </queries>
 
     <application
+        android:name=".NubiaApplication"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/device_settings_app_name"
         android:persistent="true"
@@ -75,6 +84,35 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+
+        <activity android:name=".trigger.TriggerAppsActivity"
+            android:label="@string/trigger_apps_title"
+            android:exported="false" />
+        <activity android:name=".trigger.TriggerProfileActivity"
+            android:label="@string/trigger_profile_title"
+            android:exported="false" />
+        <service android:name=".trigger.TriggerEditorService"
+            android:exported="false" />
+
+        <activity
+            android:name=".lighting.LightingActivity"
+            android:label="@string/lighting_title"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="org.lineageos.settings.LIGHTING_SETTINGS" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <service
+            android:name=".service.NubiaNotificationListener"
+            android:exported="true"
+            android:label="@string/notification_listener_label"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
 
         <service
             android:name=".fan.FanTileService"

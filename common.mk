@@ -342,6 +342,18 @@ PRODUCT_PACKAGES += \
 PRODUCT_BOOT_JARS += \
     telephony-ext
 
+# Fan control
+PRODUCT_PACKAGES += \
+    nubia_fan_service
+
+# RGB lighting control
+PRODUCT_PACKAGES += \
+    nubia_lighting_service
+
+# Event-driven, per-app shoulder triggers
+PRODUCT_PACKAGES += \
+    nubia_trigger_service
+
 # Thermal
 PRODUCT_PACKAGES += \
     android.hardware.thermal-service.qti

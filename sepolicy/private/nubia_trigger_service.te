@@ -1,0 +1,14 @@
+# SPDX-License-Identifier: Apache-2.0
+# Dedicated C-native service; no root and no cross-application task inspection.
+type nubia_trigger_service, domain, coredomain;
+init_daemon_domain(nubia_trigger_service)
+
+allow nubia_trigger_service system_data_file:dir search;
+allow nubia_trigger_service nubia_trigger_data_file:dir { getattr open read search watch };
+allow nubia_trigger_service nubia_trigger_data_file:file { getattr open read };
+
+allow nubia_trigger_service input_device:dir r_dir_perms;
+allow nubia_trigger_service input_device:chr_file r_file_perms;
+# /dev/uinput is labeled uhid_device in this Android source tree.
+allow nubia_trigger_service uhid_device:chr_file rw_file_perms;
+allow nubia_trigger_service proc_touchkey:file rw_file_perms;

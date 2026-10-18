@@ -1,0 +1,15 @@
+type nubia_lighting_service, domain, coredomain;
+init_daemon_domain(nubia_lighting_service)
+
+# Event-driven configuration/runtime files. The service blocks in inotify/poll
+# until one of these files changes.
+allow nubia_lighting_service system_data_file:dir search;
+allow nubia_lighting_service nubia_lighting_data_file:dir { getattr open read search watch };
+allow nubia_lighting_service nubia_lighting_data_file:file { getattr open read watch };
+
+# NX769J AW22xxx RGB controller. Only this dedicated service can write it.
+# Generic sysfs access is limited to path traversal; the writable files use the
+# dedicated sysfs_tiro_rgb label below.
+allow nubia_lighting_service sysfs:dir search;
+allow nubia_lighting_service sysfs_tiro_rgb:dir search;
+allow nubia_lighting_service sysfs_tiro_rgb:file rw_file_perms;

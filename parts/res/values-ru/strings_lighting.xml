@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="lighting_title">RGB-подсветка</string>
+    <string name="lighting_summary">Настройка подсветки кулера, триггеров и уведомлений</string>
+    <string name="lighting_enable">Включить подсветку</string>
+    <string name="lighting_mode">Режим</string>
+    <string name="lighting_effect">Цвет / эффект</string>
+    <string name="lighting_fan_category">Подсветка кулера</string>
+    <string name="lighting_trigger_category">Подсветка триггеров</string>
+    <string name="lighting_trigger_summary">Внешняя подсветка триггеров активна при включённом экране</string>
+    <string name="lighting_notification_category">Подсветка уведомлений</string>
+    <string name="lighting_notification_summary">Внешняя подсветка активна только при выключенном экране</string>
+    <string name="notification_listener_label">Подсветка уведомлений Nubia</string>
+</resources>

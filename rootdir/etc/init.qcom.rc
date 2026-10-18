@@ -520,6 +520,17 @@ on post-fs-data
     chmod 664 /sys/kernel/fan/fan_enable
     chmod 664 /sys/kernel/fan/fan_speed_count
     chmod 664 /sys/kernel/fan/fan_speed_level
+
+    # NX769J AW22xxx RGB controller. Hardware writes are owned by the native
+    # nubia_lighting_service; NubiaParts never accesses these nodes directly.
+    chown system system /sys/class/leds/aw22xxx_led/effect
+    chown system system /sys/class/leds/aw22xxx_led/cfg
+    chown system system /sys/class/leds/aw22xxx_led/hwen
+    chown system system /sys/class/leds/aw22xxx_led/brightness
+    chmod 0660 /sys/class/leds/aw22xxx_led/effect
+    chmod 0660 /sys/class/leds/aw22xxx_led/cfg
+    chmod 0660 /sys/class/leds/aw22xxx_led/hwen
+    chmod 0660 /sys/class/leds/aw22xxx_led/brightness
     # Nubia add end
 	
 

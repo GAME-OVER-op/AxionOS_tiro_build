@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     SPDX-FileCopyrightText: 2025-2026 GAME-OVER-op
+     SPDX-License-Identifier: Apache-2.0
+-->
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory android:title="@string/lighting_fan_category">
+        <SwitchPreferenceCompat
+            android:key="fan_led_enable"
+            android:title="@string/lighting_enable" />
+        <ListPreference
+            android:key="fan_led_mode"
+            android:title="@string/lighting_mode" />
+        <ListPreference
+            android:key="fan_led_code"
+            android:title="@string/lighting_effect" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/lighting_trigger_category">
+        <SwitchPreferenceCompat
+            android:key="trigger_led_enable"
+            android:title="@string/lighting_enable"
+            android:summary="@string/lighting_trigger_summary" />
+        <ListPreference
+            android:key="trigger_led_mode"
+            android:title="@string/lighting_mode" />
+        <ListPreference
+            android:key="trigger_led_code"
+            android:title="@string/lighting_effect" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/lighting_notification_category">
+        <SwitchPreferenceCompat
+            android:key="notification_led_enable"
+            android:title="@string/lighting_enable"
+            android:summary="@string/lighting_notification_summary" />
+        <ListPreference
+            android:key="notification_led_mode"
+            android:title="@string/lighting_mode" />
+        <ListPreference
+            android:key="notification_led_code"
+            android:title="@string/lighting_effect" />
+    </PreferenceCategory>
+</PreferenceScreen>

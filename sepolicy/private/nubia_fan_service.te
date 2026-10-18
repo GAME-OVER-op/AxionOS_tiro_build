@@ -1,0 +1,21 @@
+type nubia_fan_service, domain, coredomain;
+init_daemon_domain(nubia_fan_service)
+
+# Persistent configuration written by NubiaParts. The service blocks on
+# inotify and rereads this file only when it changes.
+allow nubia_fan_service system_data_file:dir search;
+allow nubia_fan_service nubia_fan_data_file:dir { getattr open read search watch };
+allow nubia_fan_service nubia_fan_data_file:file { getattr open read watch };
+
+# Cooling fan control.
+allow nubia_fan_service sysfs_fan:dir search;
+allow nubia_fan_service sysfs_fan:file rw_file_perms;
+
+# Automatic mode reads the established CPU thermal-zone set. Temperature
+# polling only runs while the fan is enabled in automatic mode.
+r_dir_file(nubia_fan_service, sysfs_thermal)
+allow nubia_fan_service sysfs_thermal:lnk_file read;
+
+# Publish actual fan activity only when the fan level changes.
+allow nubia_fan_service nubia_lighting_data_file:dir { getattr open read search write add_name };
+allow nubia_fan_service nubia_lighting_data_file:file create_file_perms;

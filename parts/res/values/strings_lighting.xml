@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="lighting_title">RGB lighting</string>
+    <string name="lighting_summary">Configure fan, trigger, and notification lighting</string>
+    <string name="lighting_enable">Enable lighting</string>
+    <string name="lighting_mode">Mode</string>
+    <string name="lighting_effect">Color / effect</string>
+    <string name="lighting_fan_category">Fan lighting</string>
+    <string name="lighting_trigger_category">Trigger lighting</string>
+    <string name="lighting_trigger_summary">External trigger lighting is active while the screen is on</string>
+    <string name="lighting_notification_category">Notification lighting</string>
+    <string name="lighting_notification_summary">External lighting is active only while the screen is off</string>
+    <string name="notification_listener_label">Nubia notification lighting</string>
+</resources>
