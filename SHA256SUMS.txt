@@ -1,0 +1,7 @@
+c5f3b744ea63b8fd13099d2a75c0c06ac421bbdf5368b27f93d2258425473fff  source/device/nubia/sm8650-common/audio/usecaseKvManager.xml
+805fd0118f1fc3b0e198048b60b1aa2f9a236c0bee63343ad3b5b037dc37a37f  source/device/nubia/tiro/device.mk
+ebe2c284ca5549079da912015a62f4013ff89d5a4e8b537ad4f4e9a3afce877e  source/device/nubia/tiro/lineage_tiro.mk
+820b1536a1ad84878a5efd8a38635b73bf73b89406c0ff163125d5ac352d0cc2  source/device/nubia/tiro/prebuilt/product/priv-app/BCR/Android.bp
+2963fdf7860e7acd17da6bd12de8892e88408f4b5fdbbe87c210b9c684ea2c40  source/device/nubia/tiro/prebuilt/product/priv-app/BCR/bcr.apk
+3d9e8a7c22f041bcbf8bc243a2532ee3ff188aeb74cd33a8ef8872afe1fcce7d  source/device/nubia/tiro/prebuilt/product/priv-app/BCR/privapp-permissions-com.chiller3.bcr.xml
+63367984aa71d90111c9b2fa72ef00f33c9d7d6f058ba4b5abc4effc75c0cf28  source/device/nubia/tiro/prebuilt/product/priv-app/BCR/sysconfig-com.chiller3.bcr.xml
